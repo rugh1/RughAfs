@@ -13,11 +13,14 @@ import threading
 from protocol import send, recv
 from msg import command
 from AfsFile import AfsFile, AfsDir, AfsNode
+
+QUEUE_SIZE = 10
+IP = '127.0.0.1'
+PORT = 9999
+
 FID_TABLE = {'/': 1}
-CALLBACK_TABLE = {}
+CALLBACK_TABLE = {} #FID:TRUE(IF FINE)/FALSE(IF NOT FINE)
 LOCK = threading.Lock()
-
-
 
 def recv_files(socket):
     data = recv(socket)
@@ -26,24 +29,6 @@ def recv_files(socket):
     print(file)
     return file, None
 
-
-def set_callback(callback, fid):
-    ip_port = pickle.loads(callback)
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect(ip_port)
-    LOCK.acquire()
-    CALLBACK_TABLE[fid] = True
-    LOCK.release()
-    client_socket.recv(1)
-    LOCK.acquire()
-    CALLBACK_TABLE[fid] = False
-    LOCK.release()
-    return
-
-def handle_callback(callback, fid):
-    thread = Thread(target=set_callback,
-                            args=(callback, fid))
-    thread.start()
 
 def cache_files(data:AfsNode, path):
     if not type(data) is AfsDir:
@@ -92,7 +77,7 @@ def get_volume_server(file_path:str):
 
 def fetch_message(path):
     fid = get_fid(path)
-    msg = command('fetch', fid)
+    msg = command('client', 'fetch', fid)
     print(msg)
     return msg
 
@@ -158,18 +143,54 @@ def open_file(path:str, mode:str):
         print(f'{path} already in cache')
     return
 
+def handle_client_msg(client_socket, msg:command):
+    if msg.cmd == 'open':
+        open_file(msg.data, 'r') #later
+
+    elif msg.cmd == 'list':
+        print(FID_TABLE)#later
+    
+    client_socket.close()
+    #later
+
+def handle_volume_server(msg:command):
+    if msg.cmd == 'callback_broke':
+        CALLBACK_TABLE[msg.data] = False
+
+
+def handle_connection(client_socket, client_address):
+    print('recived connection', client_address)
+    msg:command = recv(client_socket)
+    print('a')
+    print(msg)
+    if(msg.sender == 'client'):
+        handle_client_msg(client_socket , msg)
+    elif(msg.sender == 'volume_server'):
+        handle_volume_server(msg)
+
 
 def main():
-    a = True 
-    while a:
-        st = input('enter command')
-        if st == 'fid':
-            print(FID_TABLE)
-        if 'open' in st:
-            path = st[5:]
-            open_file(path, 'a')
-        if st == 'exit':
-            a = False
+    """
+        Main function to open a socket and wait for clients.
+
+        :return: None
+        """
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        server_socket.bind((IP, PORT))
+        server_socket.listen(QUEUE_SIZE)
+        print("Listening for connections on port %d" % PORT)
+        while True:
+            client_socket, client_address = server_socket.accept()
+
+            thread = Thread(target=handle_connection,
+                            args=(client_socket, client_address))
+            thread.start()
+
+    except socket.error as err:
+        print('received socket exception - ' + str(err))
+    finally:
+        server_socket.close()
 
 if __name__ == "__main__":
     with open('client.txt', 'w') as f:

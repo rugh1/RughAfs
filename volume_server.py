@@ -61,9 +61,9 @@ def handle_connection(client_socket, client_address):
         fid = int(a.data)
         file = get_file(fid)
         if file is None:
-            answer = command('file not found', None)
+            answer = command('volume_server', 'file_not_found', None)
         else:
-            answer = command('file', file.pickle_me())
+            answer = command('volume_server', 'file', file.pickle_me())
             if(CALLBACK_TABLE.get(fid, 'def') == 'def'):
                 CALLBACK_TABLE[fid] = []
             CALLBACK_TABLE[fid].append(client_socket)

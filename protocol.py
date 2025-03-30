@@ -41,9 +41,11 @@ def recv(connected_socket):
     :rtype: list[str]
     """
     # Receive the length of the message in hexadecimal
+    print('reciving')
     length_hex = b''
     tmp = b''
     while tmp != b'!':
+        print(length_hex)
         length_hex += tmp
         tmp = connected_socket.recv(1)
 
