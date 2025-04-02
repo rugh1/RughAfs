@@ -20,9 +20,9 @@ def send(connected_socket, msg:command):
     :return: None
     :rtype: None
     """
+    print(f'sending: {msg}')
     data = pickle.dumps(msg)
     # Check if the last character of the 'msg' string is a space
-
     # Convert the length of the 'msg' string to hexadecimal representation, excluding the '0x' prefix
     msg = int_to_bytes(len(data)) + b'!' + data
     print(msg)
@@ -57,5 +57,5 @@ def recv(connected_socket):
     while len(received_msg) < length:
         received_msg += connected_socket.recv(1)
     data = pickle.loads(received_msg)
-    # Split the received message using '!!' as the separator
+    # Split the received message using '!' as the separator
     return data
