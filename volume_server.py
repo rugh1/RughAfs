@@ -10,7 +10,7 @@ PORT = 22353
 
 FILES_TABLE = {}
 CALLBACK_TABLE = {}
-
+unique_callbacks = []
 
 def load_table():
     global FILES_TABLE
@@ -23,6 +23,11 @@ def save_table():
     pickle.dump(FILES_TABLE, f)
     f.close()
     
+def callback_message(fid):
+    return command('volume_server', 'callback_broke', fid)
+
+def server_down_message():
+    return command('volume_server', 'server_down', None)
 def get_file(fid):
     return FILES_TABLE.get(fid, None)
 
@@ -55,19 +60,49 @@ def add_to_table(file:AfsNode):
     FILES_TABLE[file.fid] = file
 
 def handle_connection(client_socket, client_address):
+    print('got connection from', client_address)
     a = recv(client_socket)
     print(a)
     if 'fetch' == a.cmd: # fix this written bad
-        fid = int(a.data)
-        file = get_file(fid)
-        if file is None:
-            answer = command('file not found', None)
-        else:
-            answer = command('file', file.pickle_me())
-            if(CALLBACK_TABLE.get(fid, 'def') == 'def'):
-                CALLBACK_TABLE[fid] = []
-            CALLBACK_TABLE[fid].append(client_socket)
-        send(client_socket, answer)
+        if a.data is None:
+            answer = command('volume_server', 'file_not_found', None)
+            send(client_socket, answer)
+        else:    
+            fid = int(a.data)
+            file = get_file(fid)
+            if file is None:
+                answer = command('volume_server', 'file_not_found', None)
+            else:
+                answer = command('volume_server', 'file', file.pickle_me())
+                if(CALLBACK_TABLE.get(fid, 'def') == 'def'):
+                    CALLBACK_TABLE[fid] = []
+                CALLBACK_TABLE[fid].append(a.src)
+                if a.src not in unique_callbacks:
+                    unique_callbacks.append(a.src)
+            send(client_socket, answer)
+    if 'change' == a.cmd: # for testing
+        if a.data is not None:
+            fid = int(a.data)
+            update_callbacks(fid)
+    client_socket.close()
+    return
+
+
+def server_down():
+    for i in unique_callbacks:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect(i)
+        send(s, server_down_message())
+        s.close()
+
+
+def update_callbacks(fid):
+    for i in CALLBACK_TABLE.get(fid, None):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect(i)
+        send(s, callback_message(fid))
+        s.close()
+
 
 def print_table():
     for i, j in FILES_TABLE.items():
@@ -95,8 +130,9 @@ def main():
     except socket.error as err:
         print('received socket exception - ' + str(err))
     finally:
+        server_down()
         server_socket.close()
-
+    
 
 if __name__ == "__main__":
     # Call the main handler function
