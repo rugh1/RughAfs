@@ -11,9 +11,9 @@ import pickle
 from threading import Thread
 import threading
 from CacheManager.handlers import handle_connection
-from protocol import send, recv
-from msg import command
-from AfsFile import AfsFile, AfsDir, AfsNode
+from networks.protocol import send, recv
+from networks.msg import command
+from storage.AfsFile import AfsFile, AfsDir, AfsNode
 from CacheManager.network import PORT, IP, QUEUE_SIZE
 
 
@@ -43,7 +43,7 @@ def main():
         server_socket.close()
 
 if __name__ == "__main__":
-    with open('client.txt', 'w') as f:
+    with open('client.txt', 'w') as f: # clear client.txt
         pass
     main()
     
