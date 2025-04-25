@@ -11,9 +11,9 @@ import pickle
 from threading import Thread
 import threading
 from CacheManager.handlers import handle_connection
-from networks.protocol import send, recv
-from networks.msg import command
-from storage.AfsFile import AfsFile, AfsDir, AfsNode
+from kerberos.base.protocol import send, recv
+from kerberos.base.msg import command
+from storage.AfsFiles import AfsFile, AfsDir, AfsNode
 from CacheManager.network import PORT, IP, QUEUE_SIZE
 
 
@@ -24,7 +24,7 @@ def main():
         Main function to open a socket and wait for clients.
 
         :return: None
-        """
+    """
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         server_socket.bind((IP, PORT))

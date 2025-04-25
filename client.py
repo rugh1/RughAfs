@@ -1,7 +1,7 @@
 import pickle
 import socket
-from networks.msg import command
-from networks.protocol import send, recv
+from kerberos.base.msg import command
+from kerberos.base.protocol import send, recv
 
 SERVER_HOST = '127.0.0.1'
 SERVER_PORT = 9999

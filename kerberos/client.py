@@ -1,20 +1,26 @@
 import socket
 from kerberos.msg import *
-import networks.protocol as protocol
+import kerberos.base.protocol as protocol
+from cryptography.fernet import Fernet
 import random 
-import msg
 
 class client_kerberos_socket:
     KERBEROS_AS_ADDRESS = ('127.0.0.1', 22356)
     KERBEROS_TGS_ADDRESS = ('127.0.0.1', 22223)
     exists = None
+
+    def __new__(cls, *args):
+        if client_kerberos_socket.exists is None:
+            return super().__new__(cls)
+        return client_kerberos_socket.exists
+    
     def __init__(self, client = None, password = None):
         if client_kerberos_socket.exists is None:
             self.s = None
             self.seasion_keys = {} # (ip,port):[key, id]
             self.tgt = None 
             self.ktgs = None # key for tgs 
-            self.kcas = self.hash_pass(password) # key for as and client
+            self.kcas = client_kerberos_socket.hash_pass(password) # key for as and client
             self.kerberos_as = self.KERBEROS_AS_ADDRESS # maybe add as arg
             self.kerberos_tgs = self.KERBEROS_TGS_ADDRESS # maybe add as arg
             self.client = client
@@ -170,3 +176,17 @@ class client_kerberos_socket:
             if i[1] == id:
                 return i[0]
         return None
+    
+    def __str__(self):
+        return f"""
+                s: {self.s}
+                seasion_keys: {self.seasion_keys}
+                tgt: {self.tgt}
+                ktgs: {self.ktgs}
+                kcas: {self.kcas}
+                kerberos_as: {self.kerberos_as}
+                kerberos_tgs: {self.kerberos_tgs}
+                client: {self.client}
+                current_connection: {self.current_connection}
+                id_min: {self.id_min}, id_max: {self.id_max}
+                """

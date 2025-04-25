@@ -1,7 +1,8 @@
 import socket
 from threading import Thread
-import networks.protocol as protocol
+import kerberos.base.protocol as protocol
 from kerberos.msg import *
+from cryptography.fernet import Fernet
 QUEUE_SIZE = 10
 IP = '127.0.0.1'
 PORT = 22357

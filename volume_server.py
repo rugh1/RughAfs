@@ -2,9 +2,9 @@ import random
 import socket
 from threading import Thread
 import pickle
-from storage.AfsFile import AfsFile, AfsDir, AfsNode
-from networks.protocol import send, recv
-from networks.msg import command
+from storage.AfsFiles import  *
+from kerberos.base.protocol import send, recv
+from kerberos.base.msg import command
 from kerberos.msg import *
 QUEUE_SIZE = 10
 IP = '127.0.0.1'
@@ -204,9 +204,9 @@ def main():
 
 if __name__ == "__main__":
     # Call the main handler function
-    # set_table()
+    # set_table() 
     load_table()
     print_table()
-    # print(get_file(1))
+    # save_table()
 
     main()

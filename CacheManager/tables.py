@@ -12,6 +12,14 @@ def set_fid(key, value):
     print(f'setting fid {key}:{value}')
     FID_TABLE[key] = value
 
+
+def clear_fid():
+    FID_TABLE.clear()
+    FID_TABLE['/'] = 1 
+
+def clear_callback():
+    CALLBACK_TABLE.clear()
+
 def get_callback():
     return CALLBACK_TABLE
 

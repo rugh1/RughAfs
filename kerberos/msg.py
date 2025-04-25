@@ -1,21 +1,5 @@
 import pickle
-from cryptography.fernet import Fernet
-
-class encr:
-    @staticmethod
-    def encrypt(value, key):
-        if value is None:
-            return None 
-        cipher_suite = Fernet(key)
-        return cipher_suite.encrypt(value)
-        #idea encrpyt user name but give in ticket /first iteraction random number that represents the user
-    
-    @staticmethod
-    def decrypt(value, key):
-        if value is None:
-            return None
-        cipher_suite = Fernet(key)
-        return cipher_suite.decrypt(value)
+from kerberos.base.encryptions import encr
         
 
 class kerberos_msg(encr):
@@ -50,6 +34,15 @@ class kerberos_msg(encr):
         self.session_key = super().decrypt(self.session_key, key)
         self.client_id = super().decrypt(self.client_id, key)
 
+    def __str__(self):
+        return f"""
+                request: {self.request}
+                client: {self.client}
+                client_id: {self.client_id}
+                target: {self.target}
+                session_key: {self.session_key}
+                ticket: {self.ticket}
+                """
 
 
 class kereboros_wrap(encr):

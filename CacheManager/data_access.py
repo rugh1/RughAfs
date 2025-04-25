@@ -1,6 +1,6 @@
 # data_acsess.py
 import os
-from AfsFile import AfsNode, AfsDir
+from storage.AfsFiles import AfsNode, AfsDir
 from CacheManager.tables import *
 
 
@@ -34,7 +34,8 @@ def cache_files(data:AfsNode, path):
         set_fid(f'{path}/{f.name}', f.fid)
 
 
-def need_fetch(file_path:str):
+def need_fetch(file_path:str):  # need fixing for example gives back /dir2/ maybe rewrite
+    #returns the path that you need to start fetching from
     paths = file_path.split('/')
     current_path = '/'
     while '' in paths:
@@ -52,13 +53,15 @@ def need_fetch(file_path:str):
             print(f'current_path2: {current_path}')
             return current_path
         if callback_broke(current_path):
-            print('callback broke')
+            print(f'callback broke for {current_path}')
             return current_path
         current_path+= '/'
     print('none')
     return None
 
-def file_exists(filepath:str):
+
+def file_exists(filepath:str): 
+    #check if file exists
     f = open('./client.txt', 'r')
     b =  filepath in f.read(4000)
     print('file exists bool:' , b)
