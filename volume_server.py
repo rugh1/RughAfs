@@ -1,3 +1,4 @@
+import logging
 import random
 import socket
 from threading import Thread
@@ -6,6 +7,9 @@ from storage.AfsFiles import  *
 from kerberos.base.protocol import send, recv
 from kerberos.base.msg import command
 from kerberos.msg import *
+
+logger = logging.getLogger(__name__)
+
 QUEUE_SIZE = 10
 IP = '127.0.0.1'
 PORT = 22353
@@ -32,11 +36,11 @@ def save_table():
     
 
 def callback_message(fid):
-    return command('volume_server', 'callback_broke', fid)
+    return command('callback_broke', fid)
 
 
 def server_down_message():
-    return command('volume_server', 'server_down', None)
+    return command('server_down', None)
 
 
 def get_file(fid):
@@ -74,17 +78,23 @@ def add_to_table(file:AfsNode):
 
 
 def handle_kerberos_setup(msg:kerberos_msg, client_socket):
+    logger.info(f'setting up id')
     if msg.request != 'ID-REQ':
         print(f'weird {msg.request}')
+        logger.error(f'not ID-REQ wierd {msg.request}')
     
     msg.ticket.decrypt(TGS_KEY)
+    logger.info(f'ticket dec : {msg.ticket}')
     client_name = msg.ticket.client
     key = msg.ticket.key
     msg.decrypt_id(key)
+    logger.info(f'msg dec : {msg}')
     while msg.client_id in ID_TABLE.keys():
         print(f'client id : {msg.client_id}  was taken')
+        logger.info(f'client id : {msg.client_id}  was taken')
         new_id = get_rand_id()
         resp_msg = kerberos_msg('ID-RES', client_id=new_id)
+        logger.info(f'resp {resp_msg}')
         resp_msg.encrypt_id(key)
         send(client_socket, resp_msg)
         msg = recv(client_socket)
@@ -95,10 +105,11 @@ def handle_kerberos_setup(msg:kerberos_msg, client_socket):
     send(client_socket, resp_msg)
     ID_TABLE[msg.client_id] = (client_name, key)
     print(f'id was closed on {msg.client_id}:{ID_TABLE[msg.client_id]}')
+    logger.info(f'id was closed on {msg.client_id}:{ID_TABLE[msg.client_id]}')
     return
 
 
-def handle_kerberos_wrap(msg:kereboros_wrap):
+def handle_kerberos_wrap(msg:kerberos_wrap):
     id = msg.id
     user, key = ID_TABLE[id]
     data = msg.get_msg(key)
@@ -108,7 +119,7 @@ def handle_kerberos_wrap(msg:kereboros_wrap):
     if user != data.sender:
         print(f'user dont match {user} / {data.sender}')
         return None
-    return  data
+    return  data, id
 
 
 def get_rand_id():
@@ -117,27 +128,32 @@ def get_rand_id():
             rand = random.randint(ID_MIN, ID_MAX)
         return rand
 
+def wrap_cmd(id, cmd):
+    logger.info(f'wrapping id: {id} data {cmd} ')
+    return kerberos_wrap(id, cmd, ID_TABLE[id][1])
 
 def handle_connection(client_socket, client_address):
+    logger.info(f'got connection from {client_address}')
     print('got connection from', client_address)
     msg = recv(client_socket)
     if type(msg) is kerberos_msg:
         handle_kerberos_setup(msg, client_socket)
     else:
-        msg = handle_kerberos_wrap(msg)
+        msg, id = handle_kerberos_wrap(msg)
         print(f'msg after wrap {msg}')
+        logger.info(f'msg after wrap {msg}')
         if not msg is None:
             if 'fetch' == msg.cmd: # fix this written bad
                 if msg.data is None:
-                    answer = command('volume_server', 'file_not_found', None)
+                    answer = wrap_cmd(id, command('file_not_found', None))
                     send(client_socket, answer)
                 else:    
                     fid = int(msg.data)
                     file = get_file(fid)
                     if file is None:
-                        answer = command('volume_server', 'file_not_found', None)
+                        answer = wrap_cmd(id, command('file_not_found', None))
                     else:
-                        answer = command('volume_server', 'file', file.pickle_me())
+                        answer = wrap_cmd(id, command('file', file.pickle_me()))
                         if(CALLBACK_TABLE.get(fid, 'def') == 'def'):
                             CALLBACK_TABLE[fid] = []
                         CALLBACK_TABLE[fid].append(msg.src)
@@ -183,6 +199,10 @@ def main():
 
         :return: None
         """
+    FORMAT = '%(asctime)s %(filename)s: %(message)s'
+    logging.basicConfig(filename='VolumeServer.log', level=logging.INFO, format=FORMAT)
+    logger.info('Started ')
+
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         server_socket.bind((IP, PORT))
@@ -205,6 +225,7 @@ def main():
 if __name__ == "__main__":
     # Call the main handler function
     # set_table() 
+    command.user = 'volume_server'
     load_table()
     print_table()
     # save_table()

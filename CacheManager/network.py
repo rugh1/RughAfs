@@ -23,7 +23,7 @@ def recv_files(socket:client_kerberos_socket):
 
 def fetch_message(path):
     fid = get_fid(path)
-    msg = command('client', 'fetch', fid, src=(IP, PORT))
+    msg = command('fetch', fid, src=(IP, PORT))
     print(msg)
     return msg
 

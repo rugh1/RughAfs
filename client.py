@@ -7,6 +7,7 @@ SERVER_HOST = '127.0.0.1'
 SERVER_PORT = 9999
 CLIENT_ID = 'client'
 
+command.user = CLIENT_ID
 # -- Client Implementation --
 print("Client started. Will connect, send one command, and disconnect for each input.")
 print("Enter commands like '<command> <data>' or just '<command>' (Ctrl+C to quit):")
@@ -26,7 +27,7 @@ while True: # Main loop for user input
         cmd_data = parts[1] if len(parts) > 1 else ""
 
         # 3. Create the command object
-        cmd_to_send = command(sender=CLIENT_ID, cmd=cmd_type, data=cmd_data)
+        cmd_to_send = command(cmd=cmd_type, data=cmd_data)
 
         # 4. Create socket and connect (inside the loop)
         # Using 'with' ensures the socket is closed automatically

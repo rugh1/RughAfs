@@ -1,7 +1,9 @@
 from .encryptions import encr
+
 class command(encr):
-    def __init__(self, sender, cmd , data, src = None, ):
-        self.sender = sender #username /type of client idk
+    user = None
+    def __init__(self, cmd , data, src = None, ):
+        self.sender = command.user #username /type of client idk
         self.src = src # where to write to it 
         self.cmd = cmd # command
         self.data = data # data for command

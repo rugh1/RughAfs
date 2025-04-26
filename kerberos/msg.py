@@ -25,15 +25,20 @@ class kerberos_msg(encr):
     def decrypt_msg(self, key):
         self.client = super().decrypt(self.client, key)
         self.target = super().decrypt(self.target, key)
-        self.session_key = super().decrypt(self.session_key, key)
+        self.session_key = super().decrypt(self.session_key, key, True)
         
-
     def decrypt_id(self, key):
         self.client = super().decrypt(self.client, key)
         self.target = super().decrypt(self.target, key)
-        self.session_key = super().decrypt(self.session_key, key)
+        self.session_key = super().decrypt(self.session_key, key, True)
         self.client_id = super().decrypt(self.client_id, key)
 
+    # def decrypt(self, key):
+    #     if type(self.client_id) is bytes:
+    #         self.decrypt_id(key)
+    #     else:
+    #         self.decrypt_msg(key)
+    
     def __str__(self):
         return f"""
                 request: {self.request}
@@ -45,13 +50,13 @@ class kerberos_msg(encr):
                 """
 
 
-class kereboros_wrap(encr):
+class kerberos_wrap(encr):
     def __init__(self, id, msg, key):
         self.id = id 
-        self.msg = self.encrypt(pickle.dumps(msg), key)
+        self.msg = self.encrypt(msg, key)
 
     def get_msg(self, key):
-        return pickle.loads(self.msg.decrypt(key))
+        return encr.decrypt(self.msg, key)
     
     
 class ticket(encr):
@@ -61,8 +66,14 @@ class ticket(encr):
     
     def encrypt(self, key):
         self.key = super().encrypt(self.key, key)
-        self.client = super().encrypt(self.key, key)
+        self.client = super().encrypt(self.client, key)
 
     def decrypt(self, key):
-        self.key = super().decrypt(self.key, key)
-        self.client = super().decrypt(self.key, key)
+        self.key = super().decrypt(self.key, key, True)
+        self.client = super().decrypt(self.client, key)
+
+    def __str__(self):
+        return f"""
+                key: {self.key}
+                client: {self.client}
+                """
