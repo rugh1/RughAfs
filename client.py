@@ -25,7 +25,11 @@ while True: # Main loop for user input
         parts = user_input.split(maxsplit=1)
         cmd_type = parts[0].lower()
         cmd_data = parts[1] if len(parts) > 1 else ""
-
+        cmd_data = cmd_data.split(' ')
+    
+        if len(cmd_data) == 1:
+            cmd_data = cmd_data[0]
+        print(cmd_data)
         # 3. Create the command object
         cmd_to_send = command(cmd=cmd_type, data=cmd_data)
 

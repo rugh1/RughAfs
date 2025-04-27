@@ -80,7 +80,9 @@ class client_kerberos_socket:
         msg = kerb_wrap.get_msg(key)
         logger.info(f'msg recived : {msg}')
         return msg
-        
+    
+    def translate_kerb_wrap(self, kerb_wrap):
+        return kerb_wrap.get_msg(self.get_key_from_id(kerb_wrap.id))
     
     def close(self):
         self.s.close()

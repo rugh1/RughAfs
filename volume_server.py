@@ -16,7 +16,7 @@ PORT = 22353
 
 
 ID_TABLE = {} #ID:user, key
-USER_TABLE = {} # user : (ip,port)      maybe should do it both ways
+IDSOCK_TABLE = {} # (ip, port) : id to use
 FILES_TABLE = {}
 CALLBACK_TABLE = {} # fid:[(ip,port):src, ..]
 unique_callbacks = []
@@ -44,7 +44,18 @@ def server_down_message():
 
 
 def get_file(fid):
+    logger.info(f'getting file: { FILES_TABLE.get(fid, None)}')
     return FILES_TABLE.get(fid, None)
+
+
+def change_file(fid, data):
+    file = get_file(fid)
+    if not type(file) is AfsFile:
+        logger.error('cant change dir')
+        return False
+    file.data = data
+    save_table()
+    return True
 
 
 def set_table():
@@ -132,6 +143,55 @@ def wrap_cmd(id, cmd):
     logger.info(f'wrapping id: {id} data {cmd} ')
     return kerberos_wrap(id, cmd, ID_TABLE[id][1])
 
+def handle_fetch_cmd(msg, id):
+    logger.info(f'fetch {msg}')
+    if msg.data is None:
+        answer = wrap_cmd(id, command('file_not_found', None))
+    else:    
+        fid = int(msg.data)
+        file = get_file(fid)
+        if file is None:
+            answer = wrap_cmd(id, command('file_not_found', None))
+        else:
+            answer = wrap_cmd(id, command('file', file.pickle_me()))
+
+            if(CALLBACK_TABLE.get(fid, 'def') == 'def'):
+                logger.info(f'first callback_table set')
+                CALLBACK_TABLE[fid] = []
+
+            if msg.src not in CALLBACK_TABLE[fid]:
+                CALLBACK_TABLE[fid].append(msg.src)
+                logger.info(f'added {msg.src} to {fid}')
+
+            if msg.src not in unique_callbacks:
+                unique_callbacks.append(msg.src)
+                IDSOCK_TABLE[msg.src] = id
+                logger.info(f'added {msg.src} to uniqe_callbacks')
+    return answer
+
+def handle_write_cmd(msg, id):
+    logger.info(f'fetch {msg}')
+    if msg.data is None:
+        answer = wrap_cmd(id, command('file_not_found', None))
+    else:
+        if len(msg.data) != 2:
+            logger.error(f'data in write wasnt right {msg.data}')
+            answer = wrap_cmd(id, command('cant write Dir', None))
+            return answer
+        
+        fid = int(msg.data[0])
+        file = get_file(fid)
+        if type(file) is AfsDir:
+            answer = wrap_cmd(id, command('cant write Dir', None))
+        elif file is None:
+            answer = wrap_cmd(id, command('file_not_found', None))
+        else:
+            success = change_file(fid, msg.data[1])
+            answer = wrap_cmd(id, command('write', success))
+            update_callbacks(fid , msg.src)
+    return answer
+
+
 def handle_connection(client_socket, client_address):
     logger.info(f'got connection from {client_address}')
     print('got connection from', client_address)
@@ -144,24 +204,11 @@ def handle_connection(client_socket, client_address):
         logger.info(f'msg after wrap {msg}')
         if not msg is None:
             if 'fetch' == msg.cmd: # fix this written bad
-                if msg.data is None:
-                    answer = wrap_cmd(id, command('file_not_found', None))
-                    send(client_socket, answer)
-                else:    
-                    fid = int(msg.data)
-                    file = get_file(fid)
-                    if file is None:
-                        answer = wrap_cmd(id, command('file_not_found', None))
-                    else:
-                        answer = wrap_cmd(id, command('file', file.pickle_me()))
-                        if(CALLBACK_TABLE.get(fid, 'def') == 'def'):
-                            CALLBACK_TABLE[fid] = []
-                        CALLBACK_TABLE[fid].append(msg.src)
-                        if msg.src not in unique_callbacks:
-                            unique_callbacks.append(msg.src)
-                    send(client_socket, answer)
+                answer = handle_fetch_cmd(msg, id)
+                send(client_socket, answer)
             elif 'write' == msg.cmd:
-                pass
+                answer = handle_write_cmd(msg, id)
+                send(client_socket, answer)
             elif 'change' == msg.cmd: # for testing
                 if msg.data is not None:
                     fid = int(msg.data)
@@ -180,11 +227,13 @@ def server_down():
         s.close()
 
 
-def update_callbacks(fid):
-    for i in CALLBACK_TABLE.get(fid, None):
+def update_callbacks(fid, src = None):
+    for addr in CALLBACK_TABLE.get(fid, None):
+        if addr == src:
+            continue
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect(i)
-        send(s, callback_message(fid))
+        s.connect(addr)
+        send(s, wrap_cmd(IDSOCK_TABLE[addr],callback_message(fid)))
         s.close()
 
 

@@ -27,6 +27,9 @@ def fetch_message(path):
     print(msg)
     return msg
 
+def write_message(fid, data):
+    return command('write', (fid, data), src=(IP, PORT))
+
 
 def fetch_file(server, filepath_start:str, file_path:str,): 
     client_socket = client_kerberos_socket()
