@@ -2,10 +2,12 @@
 import os
 from storage.AfsFiles import AfsNode, AfsDir
 from CacheManager.tables import *
+import logging
 
-
+logger = logging.getLogger(__name__)
 
 def cache_files(data:AfsNode, path):
+    logger.info(f'caching {data} in {path}')
     if not type(data) is AfsDir:
         print('wrote ' + f'path: {path} data: {data.data}' + "\n")
         with open('./client.txt', 'a') as file:#with open(f'{path}', 'w') as file:
@@ -37,23 +39,29 @@ def cache_files(data:AfsNode, path):
 def need_fetch(file_path:str):  # need fixing for example gives back /dir2/ maybe rewrite
     #returns the path that you need to start fetching from
     paths = file_path.split('/')
+    logger.info(f'in need_fetch for {file_path}')
     current_path = '/'
     while '' in paths:
         paths.remove('')
     if len(paths) == 0:
         paths.append('')
     print(f'in need fetch {paths}')
+    logger.info(paths)
     for path in paths:
         current_path += f'{path}'
+        logger.info(f'checking {current_path} ')
         print(f'in need fetch curr: {current_path}')
         if not file_exists(current_path): # not os.path.exists(current_path)
+            
             current_path = current_path[:-1*len(f'{path}')]
             if current_path == '':
                 current_path = '/'
             print(f'current_path2: {current_path}')
+            logger.info(f'file not exists fetching from {current_path}')
             return current_path
         if callback_broke(current_path):
             print(f'callback broke for {current_path}')
+            logger.info(f'callback broke for {current_path}')
             return current_path
         current_path+= '/'
     print('none')

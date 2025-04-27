@@ -60,7 +60,7 @@ def fetch_file(server, filepath_start:str, file_path:str,):
         client_socket.connect(server) #later
         current_path += '/' + path
         print(current_path)
-        client_socket.send(fetch_message(filepath_start))
+        client_socket.send(fetch_message(current_path))
         files, callback = recv_files(client_socket)
         if files is None:
             print(f'{current_path} wasnt found')
