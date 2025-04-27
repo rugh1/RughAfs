@@ -1,17 +1,18 @@
 # network.py
 import socket
 import pickle
-from protocol import send, recv
-from msg import command
+from kerberos.base.protocol import send, recv
+from kerberos.base.msg import command
 from CacheManager.data_access import get_fid, cache_files
 from CacheManager.tables import set_callback
+from kerberos.client import client_kerberos_socket
 
 QUEUE_SIZE = 10
 IP = '127.0.0.1'
 PORT = 9999
 
-def recv_files(socket):
-    data:command = recv(socket)
+def recv_files(socket:client_kerberos_socket):
+    data:command = socket.recv()
     if data.cmd == 'file_not_found' or data.data is None:
         return None, None
     print(data)
@@ -22,18 +23,21 @@ def recv_files(socket):
 
 def fetch_message(path):
     fid = get_fid(path)
-    msg = command('client', 'fetch', fid, src=(IP, PORT))
+    msg = command('fetch', fid, src=(IP, PORT))
     print(msg)
     return msg
 
+def write_message(fid, data):
+    return command('write', (fid, data), src=(IP, PORT))
+
 
 def fetch_file(server, filepath_start:str, file_path:str,): 
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket = client_kerberos_socket()
     client_socket.connect(server)
     
     #fetch first dir/file
     print('sending first fetch')
-    send(client_socket, fetch_message(filepath_start))
+    client_socket.send(fetch_message(filepath_start))
     files, callback = recv_files(client_socket)
     if files is None:
         print(f'server failed to find file {filepath_start}, {get_fid(filepath_start)}')
@@ -55,11 +59,11 @@ def fetch_file(server, filepath_start:str, file_path:str,):
    
     #cache files as you go
     for path in file_paths:
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket = client_kerberos_socket()
         client_socket.connect(server) #later
         current_path += '/' + path
         print(current_path)
-        send(client_socket, fetch_message(current_path))
+        client_socket.send(fetch_message(current_path))
         files, callback = recv_files(client_socket)
         if files is None:
             print(f'{current_path} wasnt found')

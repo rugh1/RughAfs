@@ -1,5 +1,8 @@
+import logging
 import pickle
-from msg import command
+from .msg import command
+
+logger = logging.getLogger(__name__)
 
 def int_to_bytes(number: int) -> bytes:
     return number.to_bytes(length=(8 + (number + (number < 0)).bit_length()) // 8, byteorder='big', signed=True)
@@ -7,7 +10,7 @@ def int_to_bytes(number: int) -> bytes:
 def int_from_bytes(binary_data: bytes) -> int:
     return int.from_bytes(binary_data, byteorder='big', signed=True)
 
-def send(connected_socket, msg:command):
+def send(connected_socket, msg:object):
     """
     Send a message over the connected socket.
 
@@ -20,6 +23,7 @@ def send(connected_socket, msg:command):
     :return: None
     :rtype: None
     """
+    logger.info(f'sending {msg}')
     print(f'sending: {msg}')
     data = pickle.dumps(msg)
     # Check if the last character of the 'msg' string is a space
@@ -58,4 +62,5 @@ def recv(connected_socket):
         received_msg += connected_socket.recv(1)
     data = pickle.loads(received_msg)
     # Split the received message using '!' as the separator
+    logger.info(f'recived {data}')
     return data
