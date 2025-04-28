@@ -18,6 +18,8 @@ from storage.AfsFiles import AfsFile, AfsDir, AfsNode
 from CacheManager.network import PORT, IP, QUEUE_SIZE
 from kerberos.client import client_kerberos_socket
 
+KERBEROS_AS_ADDRESS = ('127.0.0.1', 22356)
+
 logger = logging.getLogger(__name__)
 
 def main():
@@ -29,7 +31,7 @@ def main():
     FORMAT = '%(asctime)s %(filename)s: %(message)s'
     logging.basicConfig(filename='CacheManager.log', level=logging.INFO, format=FORMAT)
     logger.info('Started ')
-    client_socket_init = client_kerberos_socket('rugh1', 'pass1')
+    client_socket_init = client_kerberos_socket(client='rugh1', password='pass1', kerberos_as=KERBEROS_AS_ADDRESS)
     command.user = 'rugh1'
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:

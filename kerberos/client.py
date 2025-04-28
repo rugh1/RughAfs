@@ -16,14 +16,14 @@ class client_kerberos_socket:
             return super().__new__(cls)
         return client_kerberos_socket.exists
     
-    def __init__(self, client = None, password = None):
+    def __init__(self, client = None, password = None, kerberos_as = None):
         if client_kerberos_socket.exists is None:
             self.s = None
             self.session_keys = {} # (ip,port):[key, id]
             self.tgt = None 
             self.ktgs = None # key for tgs 
             self.kcas = client_kerberos_socket.hash_pass(password) # key for as and client
-            self.kerberos_as = self.KERBEROS_AS_ADDRESS # maybe add as arg
+            self.kerberos_as = kerberos_as # maybe add as arg
             self.kerberos_tgs = None # maybe add as arg
             self.client = client
             self.current_connection = None
