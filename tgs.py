@@ -5,7 +5,7 @@ import kerberos.base.protocol as protocol
 from kerberos.msg import *
 from cryptography.fernet import Fernet
 QUEUE_SIZE = 10
-IP = '127.0.0.1'
+IP = ' 172.16.91.32'
 PORT = 22357
 
 
@@ -24,12 +24,14 @@ def handle_connection(client_socket, client_address):
             protocol.send(client_socket, resp)
             client_socket.close()
             return
+        
         if not valid_user(msg.client, msg.target):
             print('user doesnt have acsess to service')
             resp = kerberos_msg('KRB-ERROR', 'user doesnt have acsess to service')
             protocol.send(client_socket, resp)
             client_socket.close()
             return
+        
         temp_service_key = gen_key()
         service_key = get_service_key(msg.target)
         service_ticket = gen_ticket(temp_service_key, msg.client, service_key)
