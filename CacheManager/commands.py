@@ -5,7 +5,7 @@ from CacheManager.network import fetch_file, get_volume_server, write_message
 from CacheManager.tables import get_fid
 from kerberos.base.msg import command
 from kerberos.client import client_kerberos_socket
-
+from CacheManager.data_access import get_actual_file
 logger = logging.getLogger(__name__)
 
 def open_file(path:str, mode:str):
@@ -20,11 +20,12 @@ def open_file(path:str, mode:str):
         logger.info(f'file was already in cache')
     return
 
-def write_file(msg:str):
-    print(f'write msg : {msg}')
-    logger.info(f'write msg : {msg}')
-    path = msg[0]
-    data = msg[1]
+def write_file(path:str):
+    print(f'write path : {path}')
+    logger.info(f'write path : {path}')
+    print('gettign actual file')
+    data = get_actual_file(path)
+    a = need_fetch(path)
     if need_fetch(path) is None:
         fid = get_fid(path)
         server = get_volume_server(fid)
@@ -36,5 +37,5 @@ def write_file(msg:str):
         print(f'write respond {resp}')
         client_socket.close()
     else:
-        print('idk')
+        print('idk  ' + a)
         logger.error('idk what to do with this rn')

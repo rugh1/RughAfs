@@ -6,15 +6,10 @@ getfile()
 handale callbacks
 """
 import logging
-import os
 import socket
-import pickle
 from threading import Thread
-import threading
 from CacheManager.handlers import handle_connection
-from kerberos.base.protocol import send, recv
 from kerberos.base.msg import command
-from storage.AfsFiles import AfsFile, AfsDir, AfsNode
 from CacheManager.network import PORT, IP, QUEUE_SIZE
 from kerberos.client import client_kerberos_socket
 

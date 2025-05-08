@@ -5,11 +5,11 @@ import kerberos.base.protocol as protocol
 from kerberos.msg import *
 from cryptography.fernet import Fernet
 QUEUE_SIZE = 10
-IP = '172.16.91.32'
+IP = '127.0.0.1'
 PORT = 22356
 
 logger = logging.getLogger(__name__)
-tgs_addres = ('172.16.91.32', 22357)
+tgs_addres = ('127.0.0.1', 22357)
 
 key_st = b'TurzkQ5B4mbZ7TCMwpt3m3js3q5WumWc40OxOnNrgjg=' # shared key as&tgs
 USER_KEY = {'rugh1':b'NLZGwvHzDDMgntjYdR1u4bZ7DhgsUdP5Sph9UCYIJoE=',

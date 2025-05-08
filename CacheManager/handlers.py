@@ -21,6 +21,7 @@ def handle_client_msg(client_socket, msg:command):
         print(msg.cmd == 'open')
         open_file(msg.data, 'r') #later
     elif msg.cmd == 'write':
+        print(f'write msg: {msg}')
         write_file(msg.data)
     elif msg.cmd == 'list':
         print(FID_TABLE)#later
@@ -55,7 +56,7 @@ def handle_connection(client_socket, client_address):
     msg = recv(client_socket)
     if type(msg) is kerberos_wrap:
         msg = client_kerberos_socket().translate_kerb_wrap(msg)
-    logger.info('recived msg: {msg}')
+    logger.info(f'recived msg: {msg}')
     if(msg.sender == 'client'):
         handle_client_msg(client_socket , msg)
     elif(msg.sender == 'volume_server'):

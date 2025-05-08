@@ -7,11 +7,9 @@ import random
 
 logger = logging.getLogger(__name__)
 class client_kerberos_socket:
-    KERBEROS_AS_ADDRESS = ('127.0.0.1', 22356)
-    KERBEROS_TGS_ADDRESS = ('127.0.0.1', 22223)
     exists = None
 
-    def __new__(cls, *args):
+    def __new__(cls, **args):
         if client_kerberos_socket.exists is None:
             return super().__new__(cls)
         return client_kerberos_socket.exists

@@ -5,7 +5,7 @@ import kerberos.base.protocol as protocol
 from kerberos.msg import *
 from cryptography.fernet import Fernet
 QUEUE_SIZE = 10
-IP = ' 172.16.91.32'
+IP = '127.0.0.1'
 PORT = 22357
 
 
