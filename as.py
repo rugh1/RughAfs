@@ -10,8 +10,11 @@ PORT = 22356
 
 logger = logging.getLogger(__name__)
 tgs_addres = ('127.0.0.1', 22357)
-key_st = b'TurzkQ5B4mbZ7TCMwpt3m3js3q5WumWc40OxOnNrgjg=' # shared key as&tgs
 
+key_st = b'TurzkQ5B4mbZ7TCMwpt3m3js3q5WumWc40OxOnNrgjg=' # shared key as&tgs
+USER_KEY = {'rugh1':b'NLZGwvHzDDMgntjYdR1u4bZ7DhgsUdP5Sph9UCYIJoE=',
+            'rugh2':b'oKspFGkEXCIWxNq_zV1Uoaqv0oZPLUEzCYj1cI0l1aY='
+            }
 
 def handle_connection(client_socket, client_address):
     logger.info(f'recived connection {client_address}')
@@ -48,7 +51,7 @@ def gen_key():
 def get_key_from_username(username):
     #need to setup db for user with hashed passwords
     logger.info(f'receving key from username {username}')
-    return b'NLZGwvHzDDMgntjYdR1u4bZ7DhgsUdP5Sph9UCYIJoE=' 
+    return USER_KEY[username]
 
 
 def main():

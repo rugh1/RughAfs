@@ -46,7 +46,8 @@ while True: # Main loop for user input
             # 5. Serialize and send the command
             send(client_socket, cmd_to_send)
             print(f"Sent: {cmd_to_send}")
-
+            response:command = recv(client_socket)
+            print(f'sucsess:{response.data}')
             # Optional: Receive a response from the server if expected
             # try:
             #    response = client_socket.recv(4096) # Adjust buffer size as needed

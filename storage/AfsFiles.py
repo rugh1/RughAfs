@@ -11,12 +11,13 @@ class AfsNode:
         return pickle.dumps(self)
     
 class AfsFile(AfsNode):
-    def __init__(self, name, fid, data):
+    def __init__(self, name, fid, data = None):
         super().__init__(name, fid)
         self.data = data
 
     def __str__(self):
         return super().__str__() + f', data:{self.data}'
+    
 
 class AfsDir(AfsNode):
     def __init__(self, name, fid, children = None):
@@ -37,8 +38,8 @@ class AfsDir(AfsNode):
         for i in self.children:
             if type(i) is AfsDir:
                 new_child.append(AfsDir(i.name, i.fid)) #so i wont send the entire tree
-            else:
-                new_child.append(i)
+            else:   
+                new_child.append(AfsFile(i.name, i.fid))
         return pickle.dumps(AfsDir(self.name, self.fid, new_child))
 
     def add(self, AfsNode):

@@ -1,38 +1,62 @@
 # data_acsess.py
 import os
+import shutil
 from storage.AfsFiles import AfsNode, AfsDir
 from CacheManager.tables import *
 import logging
 
 logger = logging.getLogger(__name__)
+ROOT_DIR = './cache_files'
+
+def clear_cache():
+    for filename in os.listdir(ROOT_DIR):
+        file_path = os.path.join(ROOT_DIR, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
+            return False
+    return True
+
+def get_actual_file(path):
+    print('in get real file')
+    actual_path = ROOT_DIR + path
+    f = open(actual_path, 'rb')
+    data = f.read()
+    f.close()
+    return data
 
 def cache_files(data:AfsNode, path):
+    actual_path = ROOT_DIR + path
+    print('real path: ' + actual_path)
     logger.info(f'caching {data} in {path}')
     if not type(data) is AfsDir:
         print('wrote ' + f'path: {path} data: {data.data}' + "\n")
-        with open('./client.txt', 'a') as file:#with open(f'{path}', 'w') as file:
-            file.write(f'path: {path} data: {data.data}' + "\n")#file.write(f.data + "\n")
+        with open(actual_path, 'wb') as file:#with open(f'{path}', 'w') as file:
+            file.write(data.data)
         set_fid(f'{path}', data.fid) # i dont know if needed  later
         return
     
-    print('wrote ' + f'dir {data.name} {data.fid}: {path}' + "\n")
-    with open('./client.txt', 'a') as file:#instad of os.makedirs(f'{path}', exist_ok=True)
-        file.write(f'dir {data.name} {data.fid}: {path}' + "\n")#os.makedirs(f'{path}', exist_ok=True)
-
+    print(f'create dir {path}' + "\n")
+    if not os.path.exists(actual_path):
+        os.makedirs(actual_path)
     set_fid(f'{path}', data.fid) # i dont know if needed  later
 
     for f in data.children:
         if path == '/':
             print('changing path')
             path = ''
-        if type(f) is AfsDir:
-            print('wrote ' + f'{path}/{f.name}' + "\n")
-            with open('./client.txt', 'a') as file:#instad of os.makedirs(f'{path}/{f.name}', exist_ok=True)
-                file.write(f'{path}/{f.name}' + "\n")#os.makedirs(f'{path}/{f.name}', exist_ok=True)
-        else:
-            print(f'path: {path}/{f.name} data: {f.data}' + "\n")
-            with open('./client.txt', 'a') as file:#with open(f'{path}/{f.name}', 'w') as file:
-                file.write(f'path: {path}/{f.name} data: {f.data}' + "\n")#file.write(f.data + "\n")
+        # if type(f) is AfsDir:
+        #     print('wrote ' + f'{path}/{f.name}' + "\n")
+        #     with open('./client.txt', 'a') as file:#instad of os.makedirs(f'{path}/{f.name}', exist_ok=True)
+        #         file.write(f'{path}/{f.name}' + "\n")#os.makedirs(f'{path}/{f.name}', exist_ok=True)
+        # else:
+        #     print(f'path: {path}/{f.name} data: {f.data}' + "\n")
+        #     with open('./client.txt', 'a') as file:#with open(f'{path}/{f.name}', 'w') as file:
+        #         file.write(f'path: {path}/{f.name} data: {f.data}' + "\n")#file.write(f.data + "\n")
         set_fid(f'{path}/{f.name}', f.fid)
 
 
@@ -40,11 +64,10 @@ def need_fetch(file_path:str):  # need fixing for example gives back /dir2/ mayb
     #returns the path that you need to start fetching from
     paths = file_path.split('/')
     logger.info(f'in need_fetch for {file_path}')
-    current_path = '/'
+    current_path = ''
     while '' in paths:
         paths.remove('')
-    if len(paths) == 0:
-        paths.append('')
+    paths.insert(0, '/')
     print(f'in need fetch {paths}')
     logger.info(paths)
     for path in paths:
@@ -52,7 +75,6 @@ def need_fetch(file_path:str):  # need fixing for example gives back /dir2/ mayb
         logger.info(f'checking {current_path} ')
         print(f'in need fetch curr: {current_path}')
         if not file_exists(current_path): # not os.path.exists(current_path)
-            
             current_path = current_path[:-1*len(f'{path}')]
             if current_path == '':
                 current_path = '/'
@@ -70,9 +92,6 @@ def need_fetch(file_path:str):  # need fixing for example gives back /dir2/ mayb
 
 def file_exists(filepath:str): 
     #check if file exists
-    f = open('./client.txt', 'r')
-    b =  filepath in f.read(4000)
-    print('file exists bool:' , b)
-    f.close()
-    return b
+    actual_path = ROOT_DIR + filepath 
+    return os.path.exists(actual_path) 
     

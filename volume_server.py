@@ -53,35 +53,31 @@ def change_file(fid, data):
     if not type(file) is AfsFile:
         logger.error('cant change dir')
         return False
-    file.data = data
-    save_table()
+    with open(file.data, 'wb') as file:
+        file.write(data)
     return True
 
+def set_files():
+    for i in range(10):
+        f = open(f'./volume_server_files/test{i}.txt', 'a')
+        f.write(f'hello world {i}')
+        f.close()
 
 def set_table():
-    dir = AfsDir('main dir', 1)
+    dir = AfsDir('main dir', '1-1')
     add_to_table(dir)
-    test1 = AfsFile('test1', 2, 1)
-    add_to_table(test1)
-    dir.add(test1)
-    test2 = AfsFile('test2', 3, 12)
-    add_to_table(test2)
-    dir.add(test2)
-    test3 = AfsFile('test3', 4, 123)
-    add_to_table(test3)
-    dir.add(test3)
-    dir2 = AfsDir('dir2', 5)
+    for i in range(1, 4):
+        test = AfsFile(f'test{i}.txt', f'1-{i+1}', f'./volume_server_files/test{i}.txt')
+        add_to_table(test)
+        dir.add(test)
+    
+    dir2 = AfsDir('dir2', '1-123')
     add_to_table(dir2)
     dir.add(dir2)
-    test4 = AfsFile('test4', 6, 1234)
-    add_to_table(test4)
-    dir2.add(test4)
-    test5 = AfsFile('test5', 7, 12345)
-    add_to_table(test5)
-    dir2.add(test5)
-    test6 = AfsFile('test6', 8, 123456)
-    add_to_table(test6)
-    dir2.add(test6)
+    for i in range(4, 8):
+        test = AfsFile(f'test{i}.txt', f'1-{i+1}', f'./volume_server_files/test{i}.txt')
+        add_to_table(test)
+        dir2.add(test)
 
 
 def add_to_table(file:AfsNode):
@@ -143,30 +139,45 @@ def wrap_cmd(id, cmd):
     logger.info(f'wrapping id: {id} data {cmd} ')
     return kerberos_wrap(id, cmd, ID_TABLE[id][1])
 
+
+def get_file_data(file:AfsFile):
+    f = open(file.data, 'rb')
+    file_data = f.read()
+    f.close()
+    return file_data
+
+
 def handle_fetch_cmd(msg, id):
     logger.info(f'fetch {msg}')
     if msg.data is None:
-        answer = wrap_cmd(id, command('file_not_found', None))
-    else:    
-        fid = int(msg.data)
-        file = get_file(fid)
-        if file is None:
-            answer = wrap_cmd(id, command('file_not_found', None))
-        else:
-            answer = wrap_cmd(id, command('file', file.pickle_me()))
+        return wrap_cmd(id, command('file_not_found', None))
+       
+    fid = msg.data
+    file = get_file(fid)
+    if file is None:
+        return  wrap_cmd(id, command('file_not_found', None))
+    
+    if type(file) is AfsDir:
+        answer = wrap_cmd(id, command('file', file.pickle_me()))
+    else:
+        print(file)
+        file_data = get_file_data(file)
+        file_to_send = AfsFile(file.name, file.fid, file_data)
+        answer = wrap_cmd(id, command('file', file_to_send.pickle_me()))
 
-            if(CALLBACK_TABLE.get(fid, 'def') == 'def'):
-                logger.info(f'first callback_table set')
-                CALLBACK_TABLE[fid] = []
+    if(CALLBACK_TABLE.get(fid, 'def') == 'def'):
+        logger.info(f'first callback_table set')
+        CALLBACK_TABLE[fid] = []
 
-            if msg.src not in CALLBACK_TABLE[fid]:
-                CALLBACK_TABLE[fid].append(msg.src)
-                logger.info(f'added {msg.src} to {fid}')
+    if msg.src not in CALLBACK_TABLE[fid]:
+        CALLBACK_TABLE[fid].append(msg.src)
+        logger.info(f'added {msg.src} to {fid}')
 
-            if msg.src not in unique_callbacks:
-                unique_callbacks.append(msg.src)
-                IDSOCK_TABLE[msg.src] = id
-                logger.info(f'added {msg.src} to uniqe_callbacks')
+    if msg.src not in unique_callbacks:
+        unique_callbacks.append(msg.src)
+        IDSOCK_TABLE[msg.src] = id
+        logger.info(f'added {msg.src} to uniqe_callbacks')
+
     return answer
 
 def handle_write_cmd(msg, id):
@@ -273,10 +284,10 @@ def main():
 
 if __name__ == "__main__":
     # Call the main handler function
-    # set_table() 
+    #set_table() 
     command.user = 'volume_server'
     load_table()
     print_table()
-    # save_table()
-
+    #save_table()
+    #set_files()
     main()
