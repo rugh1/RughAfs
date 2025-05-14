@@ -8,14 +8,17 @@ handale callbacks
 import logging
 import socket
 from threading import Thread
+from CacheManager.data_access import clear_cache
 from CacheManager.handlers import handle_connection
 from kerberos.base.msg import command
 from CacheManager.network import PORT, IP, QUEUE_SIZE
 from kerberos.client import client_kerberos_socket
+import os, shutil
 
 KERBEROS_AS_ADDRESS = ('127.0.0.1', 22356)
 
 logger = logging.getLogger(__name__)
+
 
 def main():
     """
@@ -47,7 +50,5 @@ def main():
         logger.info('Finished')
 
 if __name__ == "__main__":
-    with open('client.txt', 'w') as f: # clear client.txt
-        pass
+    assert clear_cache()
     main()
-    

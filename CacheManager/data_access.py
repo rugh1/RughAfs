@@ -1,11 +1,25 @@
 # data_acsess.py
 import os
+import shutil
 from storage.AfsFiles import AfsNode, AfsDir
 from CacheManager.tables import *
 import logging
 
 logger = logging.getLogger(__name__)
 ROOT_DIR = './cache_files'
+
+def clear_cache():
+    for filename in os.listdir(ROOT_DIR):
+        file_path = os.path.join(ROOT_DIR, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
+            return False
+    return True
 
 def get_actual_file(path):
     print('in get real file')
@@ -50,11 +64,10 @@ def need_fetch(file_path:str):  # need fixing for example gives back /dir2/ mayb
     #returns the path that you need to start fetching from
     paths = file_path.split('/')
     logger.info(f'in need_fetch for {file_path}')
-    current_path = '/'
+    current_path = ''
     while '' in paths:
         paths.remove('')
-    if len(paths) == 0:
-        paths.append('')
+    paths.insert(0, '/')
     print(f'in need fetch {paths}')
     logger.info(paths)
     for path in paths:

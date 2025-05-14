@@ -19,27 +19,30 @@ def handle_client_msg(client_socket, msg:command):
     print(msg.cmd)
     if msg.cmd == 'open':
         print(msg.cmd == 'open')
-        open_file(msg.data, 'r') #later
+        status = open_file(msg.data, 'r') #later
     elif msg.cmd == 'write':
         print(f'write msg: {msg}')
-        write_file(msg.data)
+        status = write_file(msg.data)
     elif msg.cmd == 'list':
         print(FID_TABLE)#later
+        status = True
     elif msg.cmd == 'callback':
         print(CALLBACK_TABLE)
-    
+        status = True
     elif msg.cmd == 'break_callback': # testing
         server = get_volume_server(msg.data)
         client_socket = client_kerberos_socket()
         client_socket.connect(server)
         testing_msg = command('change', msg.data)
         client_socket.send(testing_msg)
-    elif msg.cmd == 'clear':
+
+    elif msg.cmd == 'clear': #testing
         with open('client.txt', 'w') as f: # clear client.txt
             pass
         clear_callback()
         clear_fid()
-    
+        
+    send(client_socket, command('result', status))
     client_socket.close()
 
     #later

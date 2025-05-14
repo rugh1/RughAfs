@@ -64,18 +64,18 @@ def set_files():
         f.close()
 
 def set_table():
-    dir = AfsDir('main dir', 1)
+    dir = AfsDir('main dir', '1-1')
     add_to_table(dir)
     for i in range(1, 4):
-        test = AfsFile(f'test{i}.txt', i+1, f'./volume_server_files/test{i}.txt')
+        test = AfsFile(f'test{i}.txt', f'1-{i+1}', f'./volume_server_files/test{i}.txt')
         add_to_table(test)
         dir.add(test)
     
-    dir2 = AfsDir('dir2', 123)
+    dir2 = AfsDir('dir2', '1-123')
     add_to_table(dir2)
     dir.add(dir2)
     for i in range(4, 8):
-        test = AfsFile(f'test{i}.txt', i+1, f'./volume_server_files/test{i}.txt')
+        test = AfsFile(f'test{i}.txt', f'1-{i+1}', f'./volume_server_files/test{i}.txt')
         add_to_table(test)
         dir2.add(test)
 
@@ -152,7 +152,7 @@ def handle_fetch_cmd(msg, id):
     if msg.data is None:
         return wrap_cmd(id, command('file_not_found', None))
        
-    fid = int(msg.data)
+    fid = msg.data
     file = get_file(fid)
     if file is None:
         return  wrap_cmd(id, command('file_not_found', None))
@@ -284,10 +284,10 @@ def main():
 
 if __name__ == "__main__":
     # Call the main handler function
-    # set_table() 
+    #set_table() 
     command.user = 'volume_server'
     load_table()
     print_table()
-    # save_table()
-    # set_files()
+    #save_table()
+    #set_files()
     main()

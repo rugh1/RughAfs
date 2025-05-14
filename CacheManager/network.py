@@ -4,7 +4,7 @@ import pickle
 from kerberos.base.protocol import send, recv
 from kerberos.base.msg import command
 from CacheManager.data_access import get_fid, cache_files
-from CacheManager.tables import set_callback
+from CacheManager.tables import set_callback, volume_in_cache, get_address_from_cache
 from kerberos.client import client_kerberos_socket
 
 QUEUE_SIZE = 10
@@ -31,7 +31,10 @@ def write_message(fid, data):
     return command('write', (fid, data), src=(IP, PORT))
 
 
-def fetch_file(server, filepath_start:str, file_path:str,): 
+def fetch_file(filepath_start:str, file_path:str,):
+    server = get_volume_server(get_fid((filepath_start)))
+    if server is None:
+        return False 
     client_socket = client_kerberos_socket()
     client_socket.connect(server)
     
@@ -42,7 +45,7 @@ def fetch_file(server, filepath_start:str, file_path:str,):
     if files is None:
         print(f'server failed to find file {filepath_start}, {get_fid(filepath_start)}')
         client_socket.close()
-        return
+        return False #mybe add err code
     cache_files(files, filepath_start)
     set_callback(get_fid(filepath_start))
     client_socket.close()
@@ -52,6 +55,7 @@ def fetch_file(server, filepath_start:str, file_path:str,):
     file_paths = file_path.split('/')
     while '' in file_paths:
         file_paths.remove('')
+
     current_path = filepath_start
     if current_path[-1] == '/':
         current_path = current_path[:-1]
@@ -59,21 +63,35 @@ def fetch_file(server, filepath_start:str, file_path:str,):
    
     #cache files as you go
     for path in file_paths:
+        current_path += '/' + path
+        server = get_volume_server(get_fid((current_path)))
+        if server is None:
+            return False
         client_socket = client_kerberos_socket()
         client_socket.connect(server) #later
-        current_path += '/' + path
         print(current_path)
         client_socket.send(fetch_message(current_path))
         files, callback = recv_files(client_socket)
         if files is None:
             print(f'{current_path} wasnt found')
             client_socket.close()
-            break 
+            return False 
         cache_files(files, current_path)
         set_callback(get_fid(current_path))
         client_socket.close()
-    return
+    print('sucsess in fetch file')
+    return True
 
 
 def get_volume_server(fid:str):
-    return('127.0.0.1', 22353)
+    volume = int(fid.split('-')[0])
+
+    print(f'in get_volume_server {volume}')
+    return get_address_from_volume(volume)
+
+def get_address_from_volume(volume):
+    print('get_address_from_volume')
+    if volume_in_cache(volume):
+        return get_address_from_cache(volume)
+    return None #need from db
+    

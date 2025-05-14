@@ -1,10 +1,10 @@
 import threading
+import logging
 #tables
-FID_TABLE = {'/': 1}
+FID_TABLE = {'/': '1-1'}
 CALLBACK_TABLE = {} #FID:TRUE(IF FINE)/FALSE(IF NOT FINE)
 LOCK = threading.Lock()
-import logging
- 
+VOLUME_TABLE = {1:('127.0.0.1', 22353)}
 logger = logging.getLogger(__name__)
 def get_fid(current_path):
     print(f'getting fid {current_path}')
@@ -38,3 +38,11 @@ def callback_broke(path):
 def set_callback(key, value:bool = True):
     f'setting callback {key}:{value}'
     CALLBACK_TABLE[key] = value
+
+def volume_in_cache(volume):
+    print(volume)
+    print(f'volume in cache: {volume}, {VOLUME_TABLE.keys()}  {volume in (VOLUME_TABLE.keys())}')
+    return volume in VOLUME_TABLE.keys()
+
+def get_address_from_cache(volume):
+    return VOLUME_TABLE.get(volume, None)

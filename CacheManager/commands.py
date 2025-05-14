@@ -12,13 +12,13 @@ def open_file(path:str, mode:str):
     file_path_start = need_fetch(path)
     logger.info(f'open_file {path} starts from {file_path_start}')
     if file_path_start is not None:
-        print('need fetch')
-        server = get_volume_server(get_fid(path))
-        fetch_file(server, file_path_start, path)
+        print('fetching files')
+        status = fetch_file(file_path_start, path)
     else:
         print(f'{path} already in cache')
         logger.info(f'file was already in cache')
-    return
+        status = True
+    return status
 
 def write_file(path:str):
     print(f'write path : {path}')
@@ -36,6 +36,8 @@ def write_file(path:str):
         logger.info(f'write respond {resp}')
         print(f'write respond {resp}')
         client_socket.close()
+        return resp.data
     else:
         print('idk  ' + a)
         logger.error('idk what to do with this rn')
+        return False #MAYBE ADD ERR CODE
