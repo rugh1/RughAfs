@@ -32,54 +32,62 @@ def write_message(fid, data):
 
 
 def fetch_file(filepath_start:str, file_path:str,):
-    server = get_volume_server(get_fid((filepath_start)))
-    if server is None:
-        return False 
-    client_socket = client_kerberos_socket()
-    client_socket.connect(server)
-    
-    #fetch first dir/file
-    print('sending first fetch')
-    client_socket.send(fetch_message(filepath_start))
-    files, callback = recv_files(client_socket)
-    if files is None:
-        print(f'server failed to find file {filepath_start}, {get_fid(filepath_start)}')
-        client_socket.close()
-        return False #mybe add err code
-    cache_files(files, filepath_start)
-    set_callback(get_fid(filepath_start))
-    client_socket.close()
-
-
-    file_path = file_path.replace(filepath_start, '', 1)
-    file_paths = file_path.split('/')
-    while '' in file_paths:
-        file_paths.remove('')
-
-    current_path = filepath_start
-    if current_path[-1] == '/':
-        current_path = current_path[:-1]
-    print('sending next fetch', file_path)
-   
-    #cache files as you go
-    for path in file_paths:
-        current_path += '/' + path
-        server = get_volume_server(get_fid((current_path)))
+    try:
+        server = get_volume_server(get_fid((filepath_start)))
         if server is None:
-            return False
+            print('failed getting volume server')
+            return False 
+        
         client_socket = client_kerberos_socket()
-        client_socket.connect(server) #later
-        print(current_path)
-        client_socket.send(fetch_message(current_path))
+        status = client_socket.connect(server)
+        if status == False:
+            raise Exception('faild to connect') 
+        #fetch first dir/file
+        print('sending first fetch')
+        client_socket.send(fetch_message(filepath_start))
         files, callback = recv_files(client_socket)
         if files is None:
-            print(f'{current_path} wasnt found')
-            client_socket.close()
-            return False 
-        cache_files(files, current_path)
-        set_callback(get_fid(current_path))
+            print(f'server failed to find file {filepath_start}, {get_fid(filepath_start)}')
+            raise Exception(f'server failed to find file')
+        cache_files(files, filepath_start)
+        set_callback(get_fid(filepath_start))
         client_socket.close()
-    print('sucsess in fetch file')
+        file_path = file_path.replace(filepath_start, '', 1)
+    
+        file_paths = file_path.split('/')
+        while '' in file_paths:
+            file_paths.remove('')
+
+        current_path = filepath_start
+        if current_path[-1] == '/':
+            current_path = current_path[:-1]
+        print('sending next fetch', file_path)
+    
+        #cache files as you go
+        for path in file_paths:
+            current_path += '/' + path
+            server = get_volume_server(get_fid((current_path)))
+            if server is None:
+                print('failed getting server')
+                return False
+            client_socket = client_kerberos_socket()
+            connection_status = client_socket.connect(server) #
+            if connection_status == False:
+                raise Exception('faild to connect') 
+            print(current_path)
+            client_socket.send(fetch_message(current_path))
+            files, callback = recv_files(client_socket)
+            if files is None:
+                print(f'{current_path} wasnt found')
+                raise Exception('failed to find file')
+            cache_files(files, current_path)
+            set_callback(get_fid(current_path))
+            client_socket.close()
+        print('sucsess in fetch file')
+    except Exception as err:
+        print(f'encounterd err : {str(err)}')
+        client_socket.close()
+        return False
     return True
 
 
@@ -93,5 +101,10 @@ def get_address_from_volume(volume):
     print('get_address_from_volume')
     if volume_in_cache(volume):
         return get_address_from_cache(volume)
-    return None #need from db
+    return get_address_from_db(volume)
+
+
+def get_address_from_db(volume):
+    pass
+
     

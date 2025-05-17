@@ -59,23 +59,31 @@ def change_file(fid, data):
 
 def set_files():
     for i in range(10):
-        f = open(f'./volume_server_files/test{i}.txt', 'a')
+        f = open(f'./volume_server_files/test{i}.txt', 'w')
         f.write(f'hello world {i}')
         f.close()
 
 def set_table():
     dir = AfsDir('main dir', '1-1')
     add_to_table(dir)
+    dir.add_write_access('rugh1')
     for i in range(1, 4):
         test = AfsFile(f'test{i}.txt', f'1-{i+1}', f'./volume_server_files/test{i}.txt')
+        test.add_read_access('rugh1')
         add_to_table(test)
         dir.add(test)
     
+    test = AfsFile('test4.txt', f'1-{5}', f'./volume_server_files/test4.txt')
+    add_to_table(test)
+    dir.add(test)
+    
     dir2 = AfsDir('dir2', '1-123')
+    dir2.add_read_access('rugh1')
     add_to_table(dir2)
     dir.add(dir2)
-    for i in range(4, 8):
+    for i in range(5, 10):
         test = AfsFile(f'test{i}.txt', f'1-{i+1}', f'./volume_server_files/test{i}.txt')
+        test.add_write_access('rugh1')
         add_to_table(test)
         dir2.add(test)
 
@@ -118,7 +126,12 @@ def handle_kerberos_setup(msg:kerberos_msg, client_socket):
 
 def handle_kerberos_wrap(msg:kerberos_wrap):
     id = msg.id
-    user, key = ID_TABLE[id]
+    print(id)
+    user, key = ID_TABLE.get(id, (None,None))
+    print(user, key)
+    if key == None:
+        print('unknown id')
+        return None
     data = msg.get_msg(key)
     if not type(data) is command:
         print(f'idk type(data)= {type(data)}')
@@ -146,6 +159,14 @@ def get_file_data(file:AfsFile):
     f.close()
     return file_data
 
+def check_user_read_access(file, user):
+    return user in file.raccess
+
+def check_user_write_access(file, user):
+    return user in file.waccess
+
+def get_user_from_id(id):
+    return ID_TABLE[id][0] 
 
 def handle_fetch_cmd(msg, id):
     logger.info(f'fetch {msg}')
@@ -154,9 +175,9 @@ def handle_fetch_cmd(msg, id):
        
     fid = msg.data
     file = get_file(fid)
-    if file is None:
+    if file is None or not check_user_read_access(file, get_user_from_id(id)): #need change
         return  wrap_cmd(id, command('file_not_found', None))
-    
+
     if type(file) is AfsDir:
         answer = wrap_cmd(id, command('file', file.pickle_me()))
     else:
@@ -180,22 +201,29 @@ def handle_fetch_cmd(msg, id):
 
     return answer
 
+
 def handle_write_cmd(msg, id):
     logger.info(f'fetch {msg}')
-    if msg.data is None:
+    if msg.data is None :
         answer = wrap_cmd(id, command('file_not_found', None))
     else:
         if len(msg.data) != 2:
             logger.error(f'data in write wasnt right {msg.data}')
-            answer = wrap_cmd(id, command('cant write Dir', None))
+            answer = wrap_cmd(id, command('error in data', None))
             return answer
         
-        fid = int(msg.data[0])
+        fid = msg.data[0]
         file = get_file(fid)
-        if type(file) is AfsDir:
-            answer = wrap_cmd(id, command('cant write Dir', None))
-        elif file is None:
+        if file is None:
             answer = wrap_cmd(id, command('file_not_found', None))
+        elif check_user_read_access(file, get_user_from_id):
+            answer = wrap_cmd(id, command('file_not_found', None))
+        elif not check_user_write_access(file, get_user_from_id(id)):
+            answer = wrap_cmd(id, command('dont have write accsess',None))
+            
+        elif type(file) is AfsDir:
+            answer = wrap_cmd(id, command('cant write Dir', None))
+        
         else:
             success = change_file(fid, msg.data[1])
             answer = wrap_cmd(id, command('write', success))
@@ -284,10 +312,10 @@ def main():
 
 if __name__ == "__main__":
     # Call the main handler function
-    #set_table() 
+    # set_table()
     command.user = 'volume_server'
     load_table()
     print_table()
-    #save_table()
-    #set_files()
+    # save_table()
+    # set_files()
     main()

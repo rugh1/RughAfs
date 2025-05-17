@@ -29,7 +29,8 @@ def main():
     FORMAT = '%(asctime)s %(filename)s: %(message)s'
     logging.basicConfig(filename='CacheManager.log', level=logging.INFO, format=FORMAT)
     logger.info('Started ')
-    client_socket_init = client_kerberos_socket(client='rugh1', password='pass1', kerberos_as=KERBEROS_AS_ADDRESS)
+    client_socket_init = client_kerberos_socket(client='rugh1', password='rugh1', kerberos_as=KERBEROS_AS_ADDRESS)
+    print(f'logging in:{client_socket_init.login()}')
     command.user = 'rugh1'
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
@@ -48,6 +49,7 @@ def main():
     finally:
         server_socket.close()
         logger.info('Finished')
+
 
 if __name__ == "__main__":
     assert clear_cache()

@@ -2,7 +2,7 @@
 import logging
 from CacheManager.data_access import need_fetch
 from CacheManager.network import fetch_file, get_volume_server, write_message
-from CacheManager.tables import get_fid
+from CacheManager.tables import get_fid, set_callback
 from kerberos.base.msg import command
 from kerberos.client import client_kerberos_socket
 from CacheManager.data_access import get_actual_file
@@ -35,6 +35,8 @@ def write_file(path:str):
         resp = client_socket.recv()
         logger.info(f'write respond {resp}')
         print(f'write respond {resp}')
+        if resp.cmd == 'dont have write accsess':
+            set_callback(fid ,False)
         client_socket.close()
         return resp.data
     else:
