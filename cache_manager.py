@@ -8,7 +8,7 @@ handale callbacks
 import logging
 import socket
 from threading import Thread
-from CacheManager.data_access import clear_cache
+from CacheManager.data_access import clear_cache, clear_virtual_cache
 from CacheManager.handlers import handle_connection
 from kerberos.base.msg import command
 from CacheManager.network import PORT, IP, QUEUE_SIZE
@@ -53,4 +53,5 @@ def main():
 
 if __name__ == "__main__":
     assert clear_cache()
+    assert clear_virtual_cache()
     main()

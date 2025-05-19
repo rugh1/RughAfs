@@ -7,13 +7,39 @@ import logging
 
 logger = logging.getLogger(__name__)
 ROOT_DIR = './cache_files'
+VIRTUAL_ACCSESS_DIR = './ToAfs'
 
+def set_virtual_file(file:AfsNode, path): 
+    if file.name == 'main dir':
+        return
+    actual_path = VIRTUAL_ACCSESS_DIR + path
+    if type(file) is AfsDir:
+        if not os.path.exists(actual_path):
+            print('creating folder :', actual_path)
+            os.makedirs(actual_path)
+        return
+    actual_path += '/' + file.name
+    if type(file) is AfsNode:
+        print('virtual file: ' + actual_path, file)
+    with open(actual_path, 'w'):
+        pass
 
-def set_virtual_file(file:AfsNode, path):
-    pass
-    
 
 def clear_cache():
+    for filename in os.listdir(VIRTUAL_ACCSESS_DIR):
+        file_path = os.path.join(VIRTUAL_ACCSESS_DIR, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
+            return False
+    return True
+
+
+def clear_virtual_cache():
     for filename in os.listdir(ROOT_DIR):
         file_path = os.path.join(ROOT_DIR, filename)
         try:
