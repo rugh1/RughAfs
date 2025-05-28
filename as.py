@@ -84,6 +84,7 @@ def get_key_from_username(username):
     con.close()
     return result 
 
+
 def add_user(username, hashed_password):
     con = sqlite3.connect('as_users.db')
     cur = con.cursor()

@@ -10,6 +10,12 @@ def int_to_bytes(number: int) -> bytes:
 def int_from_bytes(binary_data: bytes) -> int:
     return int.from_bytes(binary_data, byteorder='big', signed=True)
 
+def int_from_bytes_client(binary_data: bytes) -> int:
+    return int.from_bytes(binary_data, byteorder='little', signed=True)
+
+def int_to_bytes_client(number: int) -> bytes:
+    return number.to_bytes(length=(8 + (number + (number < 0)).bit_length()) // 8, byteorder='little', signed=True)
+
 def send(connected_socket, msg:object):
     """
     Send a message over the connected socket.
@@ -64,3 +70,17 @@ def recv(connected_socket):
     # Split the received message using '!' as the separator
     logger.info(f'recived {data}')
     return data
+
+def client_recv(connected_socket):
+    len = int_from_bytes_client(connected_socket.recv(4)) #size of int 
+    print(len)
+    data = connected_socket.recv(len - 1) # -1 because of null terminator 
+    print(data)
+    return data.decode()
+
+def send_client(connected_socket, status:int):
+    print(f'sending to client {status}')
+    bytes_to_send = int_to_bytes_client(status)
+    bytes_to_send = bytes(3) + bytes_to_send
+    print(f'bytes: {bytes_to_send}')    
+    connected_socket.send(bytes_to_send)

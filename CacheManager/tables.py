@@ -30,14 +30,16 @@ def get_callback():
 
 def callback_broke(path):
     fid = get_fid(path)
-    #LOCK.acquire() # ? later
+    LOCK.acquire() # ? later
     a = CALLBACK_TABLE.get(fid, False)
-    #LOCK.release() # ? later
+    LOCK.release() # ? later
     return not a
 
 def set_callback(key, value:bool = True):
+    LOCK.acquire() # ? later
     f'setting callback {key}:{value}'
     CALLBACK_TABLE[key] = value
+    LOCK.release()
 
 def volume_in_cache(volume):
     print(volume)

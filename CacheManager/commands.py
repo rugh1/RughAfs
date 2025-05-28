@@ -14,10 +14,14 @@ def open_file(path:str, mode:str):
     if file_path_start is not None:
         print('fetching files')
         status = fetch_file(file_path_start, path)
+        if status:
+            status = 0
+        else: 
+            status = 1
     else:
         print(f'{path} already in cache')
         logger.info(f'file was already in cache')
-        status = True
+        status = 0
     return status
 
 def write_file(path:str):
