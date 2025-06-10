@@ -37,8 +37,8 @@ def main():
                             args=(('127.0.0.1', CLIENT_SERVER_PORT), 1))
         volume_server_thread = Thread(target=handle_volume_server,
                             args=((IP, PORT), QUEUE_SIZE))
-        client_thread.start()
-        volume_server_thread.start()
+        client_thread.start() #start client thread
+        volume_server_thread.start() # start volume thread
 
         client_thread.join()
         volume_server_thread.join()

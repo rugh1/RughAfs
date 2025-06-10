@@ -19,6 +19,21 @@ tgs_addres = ('127.0.0.1', 22357)
 key_st = b'TurzkQ5B4mbZ7TCMwpt3m3js3q5WumWc40OxOnNrgjg=' # shared key as&tgs
 
 def handle_connection(client_socket, client_address):
+    """
+    handle_connection()
+
+    Parameters:
+        client_socket: socket.socket
+            The socket connected to the client.
+        client_address: tuple
+            A (IP, PORT) tuple representing the client's address.
+
+    Returns:
+        None
+
+    Description:
+        Routes incoming messages from the client to either sign-in or sign-up handlers based on message type.
+    """
     logger.info(f'recived connection {client_address}')
     msg:kerberos_msg = protocol.recv(client_socket)
     logger.info(f'recived msg {msg}')
@@ -33,6 +48,22 @@ def handle_connection(client_socket, client_address):
     return
 
 def handle_as_req(msg, client_socket):
+    """
+    handle_as_req()
+
+    Parameters:
+        msg: kerberos_msg
+            The AS-REQ message received from the client.
+        client_socket: socket.socket
+            The socket connected to the client.
+
+    Returns:
+        None
+
+    Description:
+        Authenticates the username (by retrieving from the database), sends an initial AS-RES response (encrypted),
+        waits for the client's reply, decrypts it, and invokes give_tgt() if the communication is valid.
+    """
     try:
         kas = get_key_from_username(msg.client)
         if kas == None:
@@ -50,6 +81,24 @@ def handle_as_req(msg, client_socket):
         print(f'encounterd err : {str(err)}')
 
 def give_tgt(msg, client_socket, kas):
+    """
+    give_tgt()
+
+    Parameters:
+        msg: kerberos_msg
+            The decrypted AS-REQ message from the client.
+        client_socket: socket.socket
+            The socket connected to the client.
+        kas: bytes
+            The user's secret key (K_cas).
+
+    Returns:
+        None
+
+    Description:
+        Generates a new session key (temp_key), builds an encrypted Ticket Granting Ticket (TGT) using temp_key,
+        wraps it in an AS-RES Kerberos message, and sends it back to the client.
+    """
     temp_key = gen_key()
     tgt = gen_tgt(temp_key, msg.client)
     resp = kerberos_msg('AS-RES', session_key=temp_key, ticket=tgt, target=tgs_addres)
@@ -63,6 +112,23 @@ def handle_signup(msg, connected_socket):
 
     
 def gen_tgt(temp_key, client_name):
+    """
+    gen_tgt()
+
+    Parameters:
+        temp_key: bytes
+            A temporary session key.
+        client_name: str
+            The client's username for whom the ticket is issued.
+
+    Returns:
+        Ticket
+            A new Ticket object encrypted with the server's key (key_st).
+
+    Description:
+        Constructs a new Ticket object containing temp_key and client_name, encrypts it using the server key,
+        and returns the encrypted ticket.
+    """
     genereated_ticket = ticket(temp_key, client_name)
     logger.info(f'gen tgt {genereated_ticket}')
     genereated_ticket.encrypt(key_st)
@@ -71,11 +137,38 @@ def gen_tgt(temp_key, client_name):
 
 
 def gen_key():
+    """
+    gen_key()
+
+    Parameters:
+        None
+
+    Returns:
+        bytes
+            A newly generated session key (using Fernet.generate_key()).
+
+    Description:
+        Creates and returns a random session key suitable for Kerberos encryption.
+    """
     tempkey = Fernet.generate_key()
     logger.info(f'generated key :{tempkey}')
     return tempkey
 
 def get_key_from_username(username):
+    """
+    get_key_from_username()
+
+    Parameters:
+        username: str
+            The username to look up in the database.
+
+    Returns:
+        bytes or None
+            The hashed password (encryption key) for the user from the users table, or None if not found.
+
+    Description:
+        Retrieves the user's encryption key from the database based on the provided username.
+    """
     logger.info(f'receving key from username {username}')
     con = sqlite3.connect("as_users.db")
     cur = con.cursor()
@@ -86,6 +179,21 @@ def get_key_from_username(username):
 
 
 def add_user(username, hashed_password):
+    """
+    add_user()
+
+    Parameters:
+        username: str
+            The new user's username.
+        hashed_password: bytes
+            The hashed password to store for the user.
+
+    Returns:
+        None
+
+    Description:
+        Adds a new user entry to the users table with the given username and hashed password.
+    """
     con = sqlite3.connect('as_users.db')
     cur = con.cursor()
     cur.execute("INSERT INTO users (name, pass) VALUES (?, ?)", (username, hashed_password))
