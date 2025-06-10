@@ -14,6 +14,9 @@ from CacheManager.tables import *
 logger = logging.getLogger(__name__)
 
 LOCK = threading.Lock()
+def get_pid_bytes():
+    pid = os.getpid()
+    return pid
 
 def get_pid_bytes():
     """
@@ -49,6 +52,7 @@ def handle_client_msg(client_socket):
     
     logger.info('recived client connection')
     msg = client_recv(client_socket)
+    status = None
     if msg == 'PID':
         status = get_pid_bytes()
     msgs = msg.split(' ')
@@ -79,6 +83,8 @@ def handle_client_msg(client_socket):
             pass
         clear_callback()
         clear_fid()
+    if status is None:
+        status = 0
         
     send_client(client_socket, status)
     client_socket.close()

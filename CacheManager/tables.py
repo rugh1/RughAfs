@@ -24,8 +24,11 @@ def get_fid(current_path):
         Retrieves the fid associated with the specified current_path from the FID_TABLE.
     """
     print(f'getting fid {current_path}')
+    LOCK.acquire()
     logger.info(f'getting fid {current_path} {FID_TABLE.get(current_path, None)}')
-    return FID_TABLE.get(current_path, None)
+    fid = FID_TABLE.get(current_path, None)
+    LOCK.release()
+    return fid
 
 def set_fid(key, value):
     """
@@ -43,15 +46,16 @@ def set_fid(key, value):
     Description:
         Inserts or updates the entry in FID_TABLE, mapping the given key to the specified value.
     """
+    LOCK.acquire()
     print(f'setting fid {key}:{value}')
- 
     logger.info(f'setting fid {key}:{value}')
     FID_TABLE[key] = value
+    LOCK.release()
+
 
 def get_callback():
     """
     get_callback()
-
     Parameters:
         None
 
@@ -101,8 +105,8 @@ def set_callback(key, value:bool = True):
     Description:
         Updates CALLBACK_TABLE by setting the callback status for the given key to the specified value.
     """
-    LOCK.acquire() # ? later
     f'setting callback {key}:{value}'
+    LOCK.acquire()
     CALLBACK_TABLE[key] = value
     LOCK.release()
 

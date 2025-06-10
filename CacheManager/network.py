@@ -169,6 +169,8 @@ def get_volume_server(fid:str):
         Extracts the volume number from the given fid and calls get_address_from_volume to obtain
         the IP address and port of the appropriate volume server.
     """
+    if fid is None:
+        return fid
     volume = int(fid.split('-')[0])
 
     print(f'in get_volume_server {volume}')

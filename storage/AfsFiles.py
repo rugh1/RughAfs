@@ -43,9 +43,11 @@ class AfsDir(AfsNode):
             # print(files_list)
         return 'dir ' + super().__str__() + f' files: \n{files_list}' 
     
-    def pickle_me(self):
+    def pickle_me(self, user):
         new_child = []
         for i in self.children:
+            if user not in i.raccess:
+                continue
             if type(i) is AfsDir:
                 new_child.append(AfsDir(i.name, i.fid)) #so i wont send the entire tree
             else:   
