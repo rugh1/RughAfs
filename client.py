@@ -4,7 +4,7 @@ from kerberos.base.msg import command
 from kerberos.base.protocol import send, recv
 
 SERVER_HOST = '127.0.0.1'
-SERVER_PORT = 9999
+SERVER_PORT = 9998
 CLIENT_ID = 'client'
 
 command.user = CLIENT_ID

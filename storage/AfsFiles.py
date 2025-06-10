@@ -3,9 +3,19 @@ class AfsNode:
     def __init__(self, name, fid):
         self.name = name
         self.fid = fid
+        self.raccess = []
+        self.waccess = []
+
+    def add_read_access(self, user):
+        self.raccess.append(user)
+
+    def add_write_access(self, user):
+        self.waccess.append(user)
+        if user not in self.raccess:
+            self.raccess.append(user)
 
     def __str__(self):
-        return f'name:{self.name},fid:{self.fid}'
+        return f'name:{self.name},fid:{self.fid},read_access:{self.raccess},write_access:{self.waccess} '
 
     def pickle_me(self):
         return pickle.dumps(self)

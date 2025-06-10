@@ -12,22 +12,26 @@ class kerberos_msg(encr):
         self.ticket = ticket
     
     def encrypt_msg(self, key):
+        print(f'encrypting msg: {self}')
         self.client = super().encrypt(self.client, key)
         self.target = super().encrypt(self.target, key)
         self.session_key = super().encrypt(self.session_key, key)
 
     def encrypt_id(self, key):
+        print(f'encrypting id: {self}')
         self.client = super().encrypt(self.client, key)
         self.target = super().encrypt(self.target, key)
         self.session_key = super().encrypt(self.session_key, key)
         self.client_id = super().encrypt(self.client_id, key)
 
     def decrypt_msg(self, key):
+        print(f'decrypting msg: {self}')
         self.client = super().decrypt(self.client, key)
         self.target = super().decrypt(self.target, key)
         self.session_key = super().decrypt(self.session_key, key, True)
         
     def decrypt_id(self, key):
+        print(f'decrypting id: {self}')
         self.client = super().decrypt(self.client, key)
         self.target = super().decrypt(self.target, key)
         self.session_key = super().decrypt(self.session_key, key, True)
@@ -58,6 +62,8 @@ class kerberos_wrap(encr):
     def get_msg(self, key):
         return encr.decrypt(self.msg, key)
     
+    def __str__(self):
+        return f'id: {self.id}, {self.msg}'
     
 class ticket(encr):
     def __init__(self, key, client):
