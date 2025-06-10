@@ -92,6 +92,8 @@ def fetch_file(filepath_start:str, file_path:str,):
 
 
 def get_volume_server(fid:str):
+    if fid is None:
+        return fid
     volume = int(fid.split('-')[0])
 
     print(f'in get_volume_server {volume}')

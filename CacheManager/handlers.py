@@ -1,5 +1,6 @@
  # handler.py
 import logging
+import os
 import socket
 import threading
 from CacheManager.network import get_volume_server
@@ -13,10 +14,16 @@ from CacheManager.tables import *
 logger = logging.getLogger(__name__)
 
 LOCK = threading.Lock()
+def get_pid_bytes():
+    pid = os.getpid()
+    return pid
 
 def handle_client_msg(client_socket):
     logger.info('recived client connection')
     msg = client_recv(client_socket)
+    status = None
+    if msg == 'PID':
+        status = get_pid_bytes()
     msgs = msg.split(' ')
     print('msg:', msg)
     logger.info('handeling client msg')
@@ -45,6 +52,8 @@ def handle_client_msg(client_socket):
             pass
         clear_callback()
         clear_fid()
+    if status is None:
+        status = 0
         
     send_client(client_socket, status)
     client_socket.close()

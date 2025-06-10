@@ -81,6 +81,8 @@ def client_recv(connected_socket):
 def send_client(connected_socket, status:int):
     print(f'sending to client {status}')
     bytes_to_send = int_to_bytes_client(status)
-    bytes_to_send = bytes(3) + bytes_to_send
-    print(f'bytes: {bytes_to_send}')    
+    print(bytes_to_send)
+    bytes_to_send = bytes_to_send + bytes(4-len(bytes_to_send))
+
+    print(f'bytes: {bytes_to_send}')
     connected_socket.send(bytes_to_send)

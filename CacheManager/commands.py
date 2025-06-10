@@ -9,6 +9,7 @@ from CacheManager.data_access import get_actual_file
 logger = logging.getLogger(__name__)
 
 def open_file(path:str, mode:str):
+    path = path.replace('\\', '/')
     file_path_start = need_fetch(path)
     logger.info(f'open_file {path} starts from {file_path_start}')
     if file_path_start is not None:

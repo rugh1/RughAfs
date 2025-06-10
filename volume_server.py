@@ -179,7 +179,7 @@ def handle_fetch_cmd(msg, id):
         return  wrap_cmd(id, command('file_not_found', None))
 
     if type(file) is AfsDir:
-        answer = wrap_cmd(id, command('file', file.pickle_me()))
+        answer = wrap_cmd(id, command('file', file.pickle_me(get_user_from_id(id))))
     else:
         print(file)
         file_data = get_file_data(file)
