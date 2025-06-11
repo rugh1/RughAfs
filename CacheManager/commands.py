@@ -1,7 +1,7 @@
 #commands.py
 import logging
 from CacheManager.data_access import need_fetch
-from CacheManager.network import fetch_file, get_volume_server, write_message
+from CacheManager.network import fetch_file, get_volume_server, write_message, access_message
 from CacheManager.tables import get_fid, set_callback
 from kerberos.base.msg import command
 from kerberos.client import client_kerberos_socket
@@ -78,3 +78,45 @@ def write_file(path:str):
         print('idk  ' + a)
         logger.error('idk what to do with this rn')
         return False #MAYBE ADD ERR CODE
+    
+def check_write_access(path):
+    """
+    check_write_access)
+
+    Parameters:
+        path: str
+            The file path.
+
+    Returns:
+        bool
+            returns -1 if user doesnt have write access else returns whatever really
+
+    Description:
+        checks write access of a file for user
+    """
+ 
+    print(f'check access for path : {path}')
+    logger.info(f'check access path : {path}')
+    a = need_fetch(path)
+    if need_fetch(path) is None:
+        fid = get_fid(path)
+        server = get_volume_server(fid)
+        client_socket = client_kerberos_socket()
+        client_socket.connect(server)
+        client_socket.send(access_message(fid))
+        resp = client_socket.recv()
+        logger.info(f'write respond {resp}')
+        print(f'write respond {resp}')
+        if resp.cmd != 'access_check':
+            logger.error(f'smth wierd with {resp}')
+            return -1
+        client_socket.close()
+        return resp.data
+    else:
+        print('idk  ' + a)
+        logger.error('idk what to do with this rn')
+        return -1 
+ 
+    
+    
+      

@@ -56,6 +56,26 @@ def fetch_message(path):
     print(msg)
     return msg
 
+def access_message(fid):
+    """
+    access_message()
+
+    Parameters:
+        fid: str
+            The file identifier to which data will be written.
+
+    Returns:
+        Command
+            A command object of type 'check_access' containing the file identifier (fid).
+
+    Description:
+        Builds and returns a 'check_access' command message for the volume server using the specified file path.
+    """
+    msg = command('check_access', fid)
+    print(msg)
+    return msg
+
+
 def write_message(fid, data):
     """
     write_message()

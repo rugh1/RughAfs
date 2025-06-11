@@ -7,7 +7,7 @@ from CacheManager.network import get_volume_server
 from kerberos.msg import kerberos_wrap
 from kerberos.base.msg import command
 from kerberos.client import client_kerberos_socket
-from CacheManager.commands import open_file, write_file
+from CacheManager.commands import open_file, write_file, check_write_access
 from kerberos.base.protocol import send, recv, client_recv, send_client
 from CacheManager.tables import *
 
@@ -62,7 +62,10 @@ def handle_client_msg(client_socket):
     if msgs[0] == 'open':
         print(msgs[0] == 'open')
         status = open_file(msgs[1]) #later
-    elif msgs[0] == 'write':
+    elif msg[0] == 'write1':
+        print(f'checking access rights for {msg[1]}')
+        status = check_write_access(msg[1])
+    elif msgs[0] == 'write2':
         print(f'write msg: {msg}')
         status = write_file(msgs[1])
     elif msgs[0] == 'list':
@@ -81,8 +84,8 @@ def handle_client_msg(client_socket):
     elif msgs[0] == 'clear': #testing
         with open('client.txt', 'w') as f: # clear client.txt
             pass
-        clear_callback()
-        clear_fid()
+        # clear_callback()
+        # clear_fid()
     if status is None:
         status = 0
         

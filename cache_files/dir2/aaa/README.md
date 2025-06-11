@@ -1,3 +1,10 @@
+# Documentation for Python Files in 'aaa'
+
+This document contains the content of all Python (.py) files found in this directory and its subdirectories.
+
+## volume_server.py
+
+python
 import logging
 import random
 import socket
@@ -424,7 +431,7 @@ def handle_fetch_cmd(msg, id):
         return  wrap_cmd(id, command('file_not_found', None))
 
     if type(file) is AfsDir:
-        answer = wrap_cmd(id, command('file', file.pickle_me(get_user_from_id(id))))
+        answer = wrap_cmd(id, command('file', file.pickle_me()))
     else:
         print(file)
         file_data = get_file_data(file)
@@ -492,20 +499,6 @@ def handle_write_cmd(msg, id):
             update_callbacks(fid , msg.src)
     return answer
 
-def handle_check_access_cmd(msg, id):
-    logger.info(f'check access {msg}')
-    if msg.data is None:
-        return wrap_cmd(id, command('file_not_found', None))
-          
-    fid = msg.data
-    file = get_file(fid)
-    if file is None:
-        return wrap_cmd(id, command('access_check', 1)) #shouldnt block files that not exists
-    if not check_user_read_access(file, get_user_from_id(id)): #need change
-        return wrap_cmd(id, command('access_check', -1)) 
-    if check_user_write_access(file, get_user_from_id(id)):
-        return wrap_cmd(id, command('access_check', 1)) 
-    return wrap_cmd(id, command('access_check', -1)) 
 
 def handle_connection(client_socket, client_address):
     """
@@ -540,9 +533,6 @@ def handle_connection(client_socket, client_address):
             elif 'write' == msg.cmd:
                 answer = handle_write_cmd(msg, id)
                 send(client_socket, answer)
-            elif 'check_access' == msg.cmd:
-                answer = handle_check_access_cmd(msg, id)
-                send(client_socket, answer) 
             elif 'change' == msg.cmd: # for testing
                 if msg.data is not None:
                     fid = int(msg.data)
@@ -641,3 +631,4 @@ if __name__ == "__main__":
     # save_table()
     # set_files()
     main()
+
