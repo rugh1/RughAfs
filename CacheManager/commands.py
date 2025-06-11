@@ -56,6 +56,7 @@ def write_file(path:str):
     Description:
         Handles the entire write operation from start to finish and returns whether it succeeded or failed.
     """
+    path = path.replace('\\', '/')
     print(f'write path : {path}')
     logger.info(f'write path : {path}')
     print('gettign actual file')
@@ -73,11 +74,11 @@ def write_file(path:str):
         if resp.cmd == 'dont have write accsess':
             set_callback(fid ,False)
         client_socket.close()
-        return resp.data
+        return 1 if resp.data else 0 # 1 good 0 bad
     else:
         print('idk  ' + a)
         logger.error('idk what to do with this rn')
-        return False #MAYBE ADD ERR CODE
+        return 0 #MAYBE ADD ERR CODE
     
 def check_write_access(path):
     """
@@ -94,7 +95,7 @@ def check_write_access(path):
     Description:
         checks write access of a file for user
     """
- 
+    path = path.replace('\\', '/')
     print(f'check access for path : {path}')
     logger.info(f'check access path : {path}')
     a = need_fetch(path)

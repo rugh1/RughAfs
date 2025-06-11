@@ -58,14 +58,14 @@ def handle_client_msg(client_socket):
     msgs = msg.split(' ')
     print('msg:', msg)
     logger.info('handeling client msg')
-    print(msgs[0])
+    print('printing the msg[0] :' , msgs[0])
     if msgs[0] == 'open':
         print(msgs[0] == 'open')
         status = open_file(msgs[1]) #later
-    elif msg[0] == 'write1':
-        print(f'checking access rights for {msg[1]}')
-        status = check_write_access(msg[1])
-    elif msgs[0] == 'write2':
+    elif msgs[0] == 'write1':
+        print(f'checking access rights for {msgs[1]}')
+        status = check_write_access(msgs[1])
+    elif msgs[0] == 'write':
         print(f'write msg: {msg}')
         status = write_file(msgs[1])
     elif msgs[0] == 'list':
