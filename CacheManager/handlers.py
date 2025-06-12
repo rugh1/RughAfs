@@ -59,7 +59,9 @@ def handle_client_msg(client_socket):
     print('msg:', msg)
     logger.info('handeling client msg')
     print('printing the msg[0] :' , msgs[0])
-    if msgs[0] == 'open':
+    if 'desktop.ini' in msg:   
+        status = 1
+    elif msgs[0] == 'open':
         print(msgs[0] == 'open')
         status = open_file(msgs[1]) #later
     elif msgs[0] == 'write1':
