@@ -37,13 +37,16 @@ def main():
     print(result)
     client_socket_init = client_kerberos_socket(client=result['username'], password=result['password'], kerberos_as=KERBEROS_AS_ADDRESS)
     login_status = client_socket_init.login()
-    while not login_status:
+    while login_status == 0:
         app = LoginSignUpApp()
         result = app.run() 
         client_socket_init.client = result['username']
         client_socket_init.kcas = client_kerberos_socket.hash_pass(result['password'])
         login_status = client_socket_init.login()
         app.close_app()
+    if login_status == -1:
+        print('AS server is unreachable')
+        return 
     command.user = result['username']
     # try:
     #     client_thread = Thread(target=handle_client,
