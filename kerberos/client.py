@@ -131,7 +131,7 @@ class client_kerberos_socket:
         self.current_connection = None
 
     def login(self):
-        status = True
+        status = 1
         try:
             logger.info('logging in')
             msg = kerberos_msg('AS-REQ', client_name=self.client)
@@ -141,11 +141,11 @@ class client_kerberos_socket:
             respond = protocol.recv(self.s)
             if respond.request == 'KRB-ERROR':
                 print('krb error')
-                status = False
+                status = 0
                 raise Exception('recived krb error')
             if respond.request != "AS-RES":
                 print(respond.request + '  smth weird with respond.request')
-                status = False
+                status = 0
                 raise Exception(f'didnt get as-res got {respond.request}')
             respond.decrypt_msg(self.kcas)
             logger.info(f'decrypted resp: {respond}')
@@ -156,11 +156,11 @@ class client_kerberos_socket:
             print(respond)
             if respond.request == 'KRB-ERROR':
                 print('krb error')
-                status = False
+                status = 0
                 raise Exception('recived krb error')
             if respond.request != "AS-RES":
                 print(respond.request + '  smth weird with respond.request')
-                status = False
+                status = 0
                 raise Exception(f'didnt get as-res got {respond.request}')
             self.tgt = respond.ticket 
             self.ktgs = respond.session_key
@@ -168,10 +168,11 @@ class client_kerberos_socket:
 
         except socket.error as err:
             print('socket err encounterd while getting tgt :', err)
-            status = False
+            status = -1 #as server down
         except Exception as err:
             print('unknown error encounterd while getting tgt:', err)
-            status = False
+            status = 0
+            
         finally:
             self.s.close()
             self.s = None

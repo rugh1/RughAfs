@@ -48,22 +48,22 @@ def main():
         print('AS server is unreachable')
         return 
     command.user = result['username']
-    # try:
-    #     client_thread = Thread(target=handle_client,
-    #                         args=(('127.0.0.1', CLIENT_SERVER_PORT), 1))
-    #     volume_server_thread = Thread(target=handle_volume_server,
-    #                         args=((IP, PORT), QUEUE_SIZE))
-    #     client_thread.start() #start client thread
-    #     volume_server_thread.start() # start volume thread
+    try:
+        client_thread = Thread(target=handle_client,
+                            args=(('127.0.0.1', CLIENT_SERVER_PORT), 1))
+        volume_server_thread = Thread(target=handle_volume_server,
+                            args=((IP, PORT), QUEUE_SIZE))
+        client_thread.start() #start client thread
+        volume_server_thread.start() # start volume thread
 
-    #     client_thread.join()
-    #     volume_server_thread.join()
-    # except socket.error as err:
-    #     print('received socket exception - ' + str(err))
+        client_thread.join()
+        volume_server_thread.join()
+    except socket.error as err:
+        print('received socket exception - ' + str(err))
         
 
 
 if __name__ == "__main__":
-    # assert clear_cache()
-    # assert clear_virtual_cache()
+    assert clear_cache()
+    assert clear_virtual_cache()
     main()

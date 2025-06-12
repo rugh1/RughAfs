@@ -63,8 +63,10 @@ def handle_client_msg(client_socket):
         status = 1
     elif msgs[0] == 'open':
         print(msgs[0] == 'open')
+        msg.replace('.~tmp', '')
         status = open_file(msgs[1]) #later
     elif msgs[0] == 'write1':
+        msg.replace('.~tmp', '')
         print(f'checking access rights for {msgs[1]}')
         status = check_write_access(msgs[1])
     elif msgs[0] == 'write':

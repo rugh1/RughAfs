@@ -57,10 +57,12 @@ def write_file(path:str):
         Handles the entire write operation from start to finish and returns whether it succeeded or failed.
     """
     path = path.replace('\\', '/')
+    
     print(f'write path : {path}')
     logger.info(f'write path : {path}')
     print('gettign actual file')
     data = get_actual_file(path)
+    path = path.replace('.~tmp', '')
     a = need_fetch(path)
     if need_fetch(path) is None:
         fid = get_fid(path)
