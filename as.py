@@ -66,8 +66,10 @@ def handle_as_req(msg, client_socket):
     """
     try:
         kas = get_key_from_username(msg.client)
-        if kas == None:
+        if kas is None:
             resp = kerberos_msg('KRB-ERROR', 'username not found')
+            protocol.send(client_socket, resp)
+            return
         rand = random.randint(0, 1000)
         resp = kerberos_msg('AS-RES', client_name=rand)
         resp.encrypt_msg(kas)
@@ -173,10 +175,28 @@ def get_key_from_username(username):
     con = sqlite3.connect("as_users.db")
     cur = con.cursor()
     cur.execute("select pass from users where name = ?", (username,))
-    result = cur.fetchone()[0]
+    result = cur.fetchone()
     con.close()
-    return result 
+    if result:
+        return result[0]
+    else:
+        logger.warning(f'No user found with username: {username}')
+        return None
 
+def create_user_table():
+    conn = sqlite3.connect("as_users.db")
+    cursor = conn.cursor()
+
+    # Create table with `username` as PRIMARY KEY and `password` as BLOB
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        name TEXT PRIMARY KEY,
+        pass BLOB NOT NULL
+    )
+    """)
+
+    conn.commit()
+    conn.close()
 
 def add_user(username, hashed_password):
     """
@@ -232,6 +252,7 @@ def main():
 
 if __name__ == "__main__":
     # print(get_key_from_username('rugh1'))
+    # create_user_table()
     # add_user('rugh1', b'GRPOqXcnBK5EH7u18zAr5E2I6wtVa6J6MKFsAR0JdYk=')
     main()
     # print('a')
